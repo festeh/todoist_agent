@@ -88,28 +88,40 @@ class _WearHomePageState extends State<WearHomePage> {
           child: Stack(
             alignment: Alignment.center,
             children: [
+              // Timer display
               Positioned(
-                top: screenWidth * 0.2,
-                child: Text(
-                  '$_seconds',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                top: screenWidth * 0.3,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    _isTimerRunning ? '$_seconds' : '',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-              ElevatedButton(
-                onPressed: _handleButtonPress,
-                style: ElevatedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: EdgeInsets.all(screenWidth * 0.1),
-                  backgroundColor: Colors.blue,
-                ),
-                child: Icon(
-                  _isTimerRunning ? Icons.stop : Icons.play_arrow,
-                  color: Colors.white,
-                  size: 36,
+              // Button positioned lower on the screen
+              Positioned(
+                top: screenWidth * 0.5, // Move button down
+                child: ElevatedButton(
+                  onPressed: _handleButtonPress,
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: EdgeInsets.all(screenWidth * 0.08), // Smaller button
+                    backgroundColor: Colors.blue,
+                  ),
+                  child: Icon(
+                    _isTimerRunning ? Icons.stop : Icons.play_arrow,
+                    color: Colors.white,
+                    size: 30, // Slightly smaller icon
+                  ),
                 ),
               ),
             ],
