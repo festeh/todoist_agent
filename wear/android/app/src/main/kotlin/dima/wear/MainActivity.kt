@@ -1,4 +1,4 @@
-package `in`.dimalip.wear
+package dima.wear
 
 import io.flutter.embedding.android.FlutterActivity
 
