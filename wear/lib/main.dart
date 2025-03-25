@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
 import 'package:logging/logging.dart';
 
 final Logger log = Logger('WearApp');
