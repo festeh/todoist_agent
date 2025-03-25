@@ -94,7 +94,7 @@ class _WearHomePageState extends State<WearHomePage> {
       try {
         // Get temporary directory for storing the recording
         final tempDir = await getTemporaryDirectory();
-        _recordingPath = '${tempDir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        _recordingPath = '${tempDir.path}/recording.m4a';
         
         // Configure recording
         final config = RecordConfig(
