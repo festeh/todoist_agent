@@ -31,11 +31,43 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class WearHomePage extends StatelessWidget {
+class WearHomePage extends StatefulWidget {
   const WearHomePage({super.key});
+
+  @override
+  State<WearHomePage> createState() => _WearHomePageState();
+}
+
+class _WearHomePageState extends State<WearHomePage> {
+  bool _isTimerRunning = false;
+  int _seconds = 0;
+  late DateTime _startTime;
 
   void _handleButtonPress() {
     log.info('Button pressed');
+    setState(() {
+      if (_isTimerRunning) {
+        // Stop the timer
+        _isTimerRunning = false;
+        _seconds = 0;
+      } else {
+        // Start the timer
+        _isTimerRunning = true;
+        _startTime = DateTime.now();
+        _startTimer();
+      }
+    });
+  }
+
+  void _startTimer() {
+    Future.delayed(const Duration(seconds: 1), () {
+      if (_isTimerRunning) {
+        setState(() {
+          _seconds = DateTime.now().difference(_startTime).inSeconds;
+        });
+        _startTimer(); // Continue the timer
+      }
+    });
   }
 
   @override
@@ -53,14 +85,35 @@ class WearHomePage extends StatelessWidget {
           color: Colors.black,
         ),
         child: Center(
-          child: ElevatedButton(
-            onPressed: _handleButtonPress,
-            style: ElevatedButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: EdgeInsets.all(screenWidth * 0.1),
-              backgroundColor: Colors.blue,
-            ),
-            child: const Icon(Icons.play_arrow, color: Colors.white, size: 36),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              if (_isTimerRunning)
+                Positioned(
+                  top: screenWidth * 0.2,
+                  child: Text(
+                    '$_seconds',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ElevatedButton(
+                onPressed: _handleButtonPress,
+                style: ElevatedButton.styleFrom(
+                  shape: const CircleBorder(),
+                  padding: EdgeInsets.all(screenWidth * 0.1),
+                  backgroundColor: Colors.blue,
+                ),
+                child: Icon(
+                  _isTimerRunning ? Icons.stop : Icons.play_arrow, 
+                  color: Colors.white, 
+                  size: 36
+                ),
+              ),
+            ],
           ),
         ),
       ),
