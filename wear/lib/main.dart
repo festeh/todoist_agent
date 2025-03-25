@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
+import 'package:logging/logging.dart';
+
+final Logger log = Logger('WearApp');
 
 void main() {
+  Logger.root.level = Level.ALL;
   runApp(const MainApp());
 }
 
@@ -27,7 +30,7 @@ class WearHomePage extends StatelessWidget {
   const WearHomePage({super.key});
 
   void _handleButtonPress() {
-    developer.log('clicked');
+    log.info('Button pressed');
   }
 
   @override
@@ -35,7 +38,7 @@ class WearHomePage extends StatelessWidget {
     // Get the screen size to ensure our UI works well on round displays
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
-    
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Container(
@@ -52,11 +55,7 @@ class WearHomePage extends StatelessWidget {
               padding: EdgeInsets.all(screenWidth * 0.1),
               backgroundColor: Colors.blue,
             ),
-            child: const Icon(
-              Icons.play_arrow,
-              color: Colors.white,
-              size: 36,
-            ),
+            child: const Icon(Icons.play_arrow, color: Colors.white, size: 36),
           ),
         ),
       ),
