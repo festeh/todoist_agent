@@ -88,18 +88,17 @@ class _WearHomePageState extends State<WearHomePage> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              if (_isTimerRunning)
-                Positioned(
-                  top: screenWidth * 0.2,
-                  child: Text(
-                    '$_seconds',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+              Positioned(
+                top: screenWidth * 0.2,
+                child: Text(
+                  '$_seconds',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+              ),
               ElevatedButton(
                 onPressed: _handleButtonPress,
                 style: ElevatedButton.styleFrom(
@@ -108,9 +107,9 @@ class _WearHomePageState extends State<WearHomePage> {
                   backgroundColor: Colors.blue,
                 ),
                 child: Icon(
-                  _isTimerRunning ? Icons.stop : Icons.play_arrow, 
-                  color: Colors.white, 
-                  size: 36
+                  _isTimerRunning ? Icons.stop : Icons.play_arrow,
+                  color: Colors.white,
+                  size: 36,
                 ),
               ),
             ],
