@@ -90,7 +90,7 @@ class _WearHomePageState extends State<WearHomePage> {
             children: [
               // Timer display
               Positioned(
-                top: screenWidth * 0.3,
+                top: screenWidth * 0.2,
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   decoration: BoxDecoration(
@@ -98,7 +98,7 @@ class _WearHomePageState extends State<WearHomePage> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    _isTimerRunning ? '$_seconds' : '',
+                    _isTimerRunning ? '$_seconds' : '0',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 32,
