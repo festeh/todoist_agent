@@ -46,21 +46,20 @@ class _WearHomePageState extends State<WearHomePage> {
   int _seconds = 0;
   late DateTime _startTime;
   final _audioRecorder = AudioRecorder();
-  String? _recordingPath;
   String _recordingInfo = '';
-  
+
   @override
   void initState() {
     super.initState();
     _checkPermission();
   }
-  
+
   @override
   void dispose() {
     _audioRecorder.dispose();
     super.dispose();
   }
-  
+
   Future<void> _checkPermission() async {
     final hasPermission = await _audioRecorder.hasPermission();
     if (!hasPermission) {
@@ -72,48 +71,49 @@ class _WearHomePageState extends State<WearHomePage> {
 
   Future<void> _handleButtonPress() async {
     log.info('Button pressed');
-    
+
     if (_isRecording) {
       final path = await _audioRecorder.stop();
-      
+
       setState(() {
-        _isRecording = false;
-        _seconds = 0;
-        
         if (path != null) {
           final file = File(path);
           final fileSize = file.lengthSync();
-          _recordingInfo = 'Recording saved: ${file.path}\n'
+          _recordingInfo =
+              'Recording saved: ${file.path}\n'
               'Size: ${(fileSize / 1024).toStringAsFixed(2)} KB\n'
               'Duration: $_seconds seconds';
           log.info(_recordingInfo);
         }
+
+        _seconds = 0;
+        _isRecording = false;
       });
     } else {
       // Start recording
       try {
         // Get temporary directory for storing the recording
         final tempDir = await getTemporaryDirectory();
-        _recordingPath = '${tempDir.path}/recording.m4a';
-        
+        final recordingPath = '${tempDir.path}/recording.m4a';
+
         // Configure recording
         final config = RecordConfig(
           encoder: AudioEncoder.aacLc,
           bitRate: 128000,
-          sampleRate: 44100,
+          sampleRate: 16000,
         );
-        
+
         // Start recording
-        await _audioRecorder.start(config, path: _recordingPath);
-        
+        await _audioRecorder.start(config, path: recordingPath);
+
         setState(() {
           _isRecording = true;
           _startTime = DateTime.now();
           _recordingInfo = '';
           _startTimer();
         });
-        
-        log.info('Recording started at: $_recordingPath');
+
+        log.info('Recording started at: $recordingPath');
       } catch (e) {
         log.severe('Error starting recording: $e');
       }
@@ -150,16 +150,24 @@ class _WearHomePageState extends State<WearHomePage> {
             alignment: Alignment.center,
             children: [
               // Timer display
+              Text(
+                _recordingInfo,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
               Positioned(
                 top: screenWidth * 0.2,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black54,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    _isRecording ? '$_seconds' : '0',
+                    '$_seconds',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -168,27 +176,6 @@ class _WearHomePageState extends State<WearHomePage> {
                   ),
                 ),
               ),
-              // Recording info display
-              if (_recordingInfo.isNotEmpty)
-                Positioned(
-                  top: screenWidth * 0.3,
-                  child: Container(
-                    width: screenWidth * 0.8,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _recordingInfo,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
               // Button positioned lower on the screen
               Positioned(
                 top: screenWidth * 0.5, // Move button down
@@ -196,7 +183,9 @@ class _WearHomePageState extends State<WearHomePage> {
                   onPressed: _handleButtonPress,
                   style: ElevatedButton.styleFrom(
                     shape: const CircleBorder(),
-                    padding: EdgeInsets.all(screenWidth * 0.08), // Smaller button
+                    padding: EdgeInsets.all(
+                      screenWidth * 0.08,
+                    ), // Smaller button
                     backgroundColor: Colors.blue,
                   ),
                   child: Icon(
