@@ -74,7 +74,6 @@ class _WearHomePageState extends State<WearHomePage> {
     log.info('Button pressed');
     
     if (_isRecording) {
-      // Stop recording
       final path = await _audioRecorder.stop();
       
       setState(() {
