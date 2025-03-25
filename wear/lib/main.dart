@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 final Logger log = Logger('WearApp');
 
@@ -39,29 +42,88 @@ class WearHomePage extends StatefulWidget {
 }
 
 class _WearHomePageState extends State<WearHomePage> {
-  bool _isTimerRunning = false;
+  bool _isRecording = false;
   int _seconds = 0;
   late DateTime _startTime;
+  final _audioRecorder = AudioRecorder();
+  String? _recordingPath;
+  String _recordingInfo = '';
+  
+  @override
+  void initState() {
+    super.initState();
+    _checkPermission();
+  }
+  
+  @override
+  void dispose() {
+    _audioRecorder.dispose();
+    super.dispose();
+  }
+  
+  Future<void> _checkPermission() async {
+    final hasPermission = await _audioRecorder.hasPermission();
+    if (!hasPermission) {
+      log.warning('Microphone permission not granted');
+    } else {
+      log.info('Microphone permission granted');
+    }
+  }
 
-  void _handleButtonPress() {
+  Future<void> _handleButtonPress() async {
     log.info('Button pressed');
-    setState(() {
-      if (_isTimerRunning) {
-        // Stop the timer
-        _isTimerRunning = false;
+    
+    if (_isRecording) {
+      // Stop recording
+      final path = await _audioRecorder.stop();
+      
+      setState(() {
+        _isRecording = false;
         _seconds = 0;
-      } else {
-        // Start the timer
-        _isTimerRunning = true;
-        _startTime = DateTime.now();
-        _startTimer();
+        
+        if (path != null) {
+          final file = File(path);
+          final fileSize = file.lengthSync();
+          _recordingInfo = 'Recording saved: ${file.path}\n'
+              'Size: ${(fileSize / 1024).toStringAsFixed(2)} KB\n'
+              'Duration: $_seconds seconds';
+          log.info(_recordingInfo);
+        }
+      });
+    } else {
+      // Start recording
+      try {
+        // Get temporary directory for storing the recording
+        final tempDir = await getTemporaryDirectory();
+        _recordingPath = '${tempDir.path}/recording_${DateTime.now().millisecondsSinceEpoch}.m4a';
+        
+        // Configure recording
+        final config = RecordConfig(
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          sampleRate: 44100,
+        );
+        
+        // Start recording
+        await _audioRecorder.start(config, path: _recordingPath);
+        
+        setState(() {
+          _isRecording = true;
+          _startTime = DateTime.now();
+          _recordingInfo = '';
+          _startTimer();
+        });
+        
+        log.info('Recording started at: $_recordingPath');
+      } catch (e) {
+        log.severe('Error starting recording: $e');
       }
-    });
+    }
   }
 
   void _startTimer() {
     Future.delayed(const Duration(seconds: 1), () {
-      if (_isTimerRunning) {
+      if (_isRecording) {
         setState(() {
           _seconds = DateTime.now().difference(_startTime).inSeconds;
         });
@@ -98,7 +160,7 @@ class _WearHomePageState extends State<WearHomePage> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    _isTimerRunning ? '$_seconds' : '0',
+                    _isRecording ? '$_seconds' : '0',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -107,6 +169,27 @@ class _WearHomePageState extends State<WearHomePage> {
                   ),
                 ),
               ),
+              // Recording info display
+              if (_recordingInfo.isNotEmpty)
+                Positioned(
+                  top: screenWidth * 0.3,
+                  child: Container(
+                    width: screenWidth * 0.8,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _recordingInfo,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
               // Button positioned lower on the screen
               Positioned(
                 top: screenWidth * 0.5, // Move button down
@@ -118,7 +201,7 @@ class _WearHomePageState extends State<WearHomePage> {
                     backgroundColor: Colors.blue,
                   ),
                   child: Icon(
-                    _isTimerRunning ? Icons.stop : Icons.play_arrow,
+                    _isRecording ? Icons.stop : Icons.mic,
                     color: Colors.white,
                     size: 30, // Slightly smaller icon
                   ),
