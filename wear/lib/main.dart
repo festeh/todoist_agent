@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import 'package:logging/logging.dart';
 
 final Logger log = Logger('WearApp');
 
 void main() {
+  // Initialize logging
   Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((record) {
+    // This will output to console/logcat
+    developer.log(
+      '${record.level.name}: ${record.message}',
+      time: record.time,
+      name: record.loggerName,
+      level: record.level.value,
+      error: record.error,
+      stackTrace: record.stackTrace,
+    );
+  });
+  
   runApp(const MainApp());
 }
 
