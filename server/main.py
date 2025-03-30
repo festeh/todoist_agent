@@ -38,7 +38,10 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            await websocket.send_text(f"Message text was: {data}")
+            if data == "ping":
+                await websocket.send_text("pong")
+            else:
+                await websocket.send_text(f"Message text was: {data}")
     except WebSocketDisconnect:
         print(f"Client {websocket.client} disconnected")
 
