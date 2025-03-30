@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "my-server"
+name = "my_server"
 version = "0.1.0"
 description = "A simple FastAPI server."
 readme = "README.md"
@@ -23,8 +23,7 @@ Issues = "https://github.com/yourusername/yourproject/issues" # Optional: Replac
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/server",
-    "/tests", # Optional: If you add tests later
+    "/my_server",
 ]
 
 # Optional: Add linters/formatters like Ruff
