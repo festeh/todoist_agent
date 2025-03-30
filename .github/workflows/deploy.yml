@@ -78,4 +78,4 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/deploy_temp
-            bash deploy.sh
+            ./deploy.sh
