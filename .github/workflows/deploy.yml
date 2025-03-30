@@ -33,6 +33,7 @@ jobs:
           
           # Create app directory if it doesn't exist
           mkdir -p ~/todo_server
+          rm -rf ~/todo_server/*
           
           # Copy files
           cp -r todo_server/* ~/todo_server/
