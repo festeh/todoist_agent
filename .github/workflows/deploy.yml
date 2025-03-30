@@ -39,7 +39,6 @@ jobs:
           
           # Install dependencies in a virtual environment using uv
           cd ~/todo_server
-          uv venv
           source .venv/bin/activate
           uv pip install -e .
           
