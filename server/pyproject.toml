@@ -23,8 +23,10 @@ Issues = "https://github.com/yourusername/yourproject/issues" # Optional: Replac
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/my_server",
+    "/src",
 ]
+[tool.hatch.build.targets.wheel]
+   packages = ["src/"]
 
 # Optional: Add linters/formatters like Ruff
 # [tool.ruff]

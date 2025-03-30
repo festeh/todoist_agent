@@ -4,7 +4,7 @@ Basic FastAPI server with a health check endpoint and a WebSocket endpoint.
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from .websocket import websocket_endpoint # Import the websocket handler
+from src.websocket import websocket_endpoint # Import the websocket handler
 
 # Create a FastAPI app instance
 app = FastAPI(
@@ -23,7 +23,3 @@ async def health_check():
 
 # Register the WebSocket endpoint using the imported handler
 app.websocket("/connect")(websocket_endpoint)
-
-
-# To run the server locally using uvicorn:
-# uvicorn my_server.main:app --reload --port 9090
