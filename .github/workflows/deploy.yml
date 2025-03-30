@@ -31,14 +31,13 @@ jobs:
           #!/bin/bash
           set -e
           
-          # Create app directory if it doesn't exist
-          mkdir -p ~/todo_server
-          rm -rf ~/todo_server/*
+          # Cleanup
+          rm -rf ~/todo_server
           
           # Copy files
-          cp -r todo_server/* ~/todo_server/
+          cp -r todo_server ~/
           
-          # Install dependencies in a virtual environment using uv
+          # Install dependencies in a virtual environment
           cd ~/todo_server
           source .venv/bin/activate
           pip install -e .
