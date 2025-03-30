@@ -26,4 +26,4 @@ app.websocket("/connect")(websocket_endpoint)
 
 
 # To run the server locally using uvicorn:
-# uvicorn server.main:app --reload --port 8000
+# uvicorn my_server.main:app --reload --port 9090
