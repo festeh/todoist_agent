@@ -1,8 +1,6 @@
-name: Deploy to VPS
+name: Deploy Server to VPS
 
-on:
-  push:
-    branches: [ main ]
+on: [push]
 
 jobs:
   deploy:
@@ -15,11 +13,16 @@ jobs:
         with:
           python-version: '3.10'
           
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install build
-          pip install .
+          cd todo_server
+          uv pip install build
+          uv pip install .
           
       - name: Create deployment script
         run: |
@@ -28,27 +31,27 @@ jobs:
           set -e
           
           # Create app directory if it doesn't exist
-          mkdir -p ~/my_server
+          mkdir -p ~/todo_server
           
           # Copy files
-          cp -r ./* ~/my_server/
+          cp -r todo_server/* ~/todo_server/
           
-          # Install dependencies in a virtual environment
-          cd ~/my_server
-          python -m venv venv
-          source venv/bin/activate
-          pip install -e .
+          # Install dependencies in a virtual environment using uv
+          cd ~/todo_server
+          uv venv
+          source .venv/bin/activate
+          uv pip install -e .
           
           # Create systemd service file
-          cat > my_server.service << 'EOF'
+          cat > todo_server.service << 'EOF'
           [Unit]
-          Description=My FastAPI Server
+          Description=Todoist AI Server
           After=network.target
           
           [Service]
           User=$USER
-          WorkingDirectory=/home/$USER/my_server
-          ExecStart=/home/$USER/my_server/venv/bin/uvicorn my_server.main:app --host 0.0.0.0 --port 9090
+          WorkingDirectory=/home/$USER/todo_server
+          ExecStart=/home/$USER/todo_server/.venv/bin/uvicorn todo_server.src.main:app --host 0.0.0.0 --port 9090
           Restart=always
           
           [Install]
@@ -56,10 +59,10 @@ jobs:
           EOF
           
           # Install and start service
-          sudo mv my_server.service /etc/systemd/system/
+          sudo mv todo_server.service /etc/systemd/system/
           sudo systemctl daemon-reload
-          sudo systemctl enable my_server.service
-          sudo systemctl restart my_server.service
+          sudo systemctl enable todo_server.service
+          sudo systemctl restart todo_server.service
           EOL
           chmod +x deploy.sh
           
