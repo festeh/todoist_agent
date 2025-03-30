@@ -97,4 +97,3 @@ jobs:
           script: |
             cd ~/deploy_temp
             bash deploy.sh
-            rm -f deploy.sh
