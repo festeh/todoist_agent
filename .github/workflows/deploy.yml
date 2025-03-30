@@ -73,7 +73,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          script_stop: true
           script: |
             mkdir -p ~/deploy_temp
             cd ~/deploy_temp
