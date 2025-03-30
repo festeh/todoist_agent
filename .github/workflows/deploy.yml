@@ -35,8 +35,7 @@ jobs:
           After=network.target
           
           [Service]
-          WorkingDirectory=/home/${{ secrets.SSH_USER }}/todo_server
-          ExecStart=/home/{{ secrets.SSH_USER }}/todo_server/.venv/bin/uvicorn todo_server.src.main:app  --port 9090
+          ExecStart=/home/root/todo_server/.venv/bin/uvicorn todo_server.src.main:app  --port 9090
           Restart=always
           
           [Install]
