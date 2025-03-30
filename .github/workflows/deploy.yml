@@ -36,6 +36,7 @@ jobs:
           
           [Service]
           ExecStart=/home/root/todo_server/.venv/bin/uvicorn todo_server.src.main:app  --port 9090
+          WorkingDirectory=/home/root
           Restart=always
           
           [Install]
