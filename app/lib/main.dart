@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'second_screen.dart';
 
 // Define the possible states for the application status
 enum AppStatus { idle, pressed }
@@ -18,19 +19,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: MyHomePage(), // Set MyHomePage as the initial route
     );
-    // Navigate to the SecondScreen
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SecondScreen()),
-    );
   }
 }
-
-// Import the new screen
-import 'second_screen.dart';
-
-// Import the new screen
-import 'second_screen.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -47,6 +37,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void _pressButton() {
     setState(() {
       _status = AppStatus.pressed;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const SecondScreen()),
+      );
     });
   }
 
@@ -62,41 +56,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // MyHomePage now returns just the Scaffold, as MaterialApp is handled by MyApp
     return Scaffold(
       appBar: AppBar(
         title: Center(
           // Display the status indicator in the center of the AppBar
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
-              decoration: BoxDecoration(
-                // Use a background color for the oval
-                color: Colors.blueGrey[700], // Example color
-                // Make it oval/pill-shaped
-                borderRadius: BorderRadius.circular(20.0),
-              ),
-              child: Text(
-                _getStatusText(),
-                // Ensure text is visible on the background
-                style: const TextStyle(color: Colors.white),
-              ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            decoration: BoxDecoration(
+              // Use a background color for the oval
+              color: Colors.blueGrey[700], // Example color
+              // Make it oval/pill-shaped
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            child: Text(
+              _getStatusText(),
+              // Ensure text is visible on the background
+              style: const TextStyle(color: Colors.white),
             ),
           ),
         ),
-        // Use FloatingActionButton for the bottom-right button
-        floatingActionButton: FloatingActionButton(
-          onPressed: _pressButton,
-          tooltip: 'Press Me',
-          child: const Icon(Icons.add), // Example icon
-        ),
-        // Ensure the button is positioned at the bottom right
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        body: const Center(
-          // Placeholder for main content, can be removed or replaced later
-        ),
+      ),
+      // Use FloatingActionButton for the bottom-right button
+      floatingActionButton: FloatingActionButton(
+        onPressed: _pressButton,
+        tooltip: 'Press Me',
+        child: const Icon(Icons.add), // Example icon
+      ),
+      // Ensure the button is positioned at the bottom right
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: const Center(
+        // Placeholder for main content, can be removed or replaced later
       ),
     );
   }
