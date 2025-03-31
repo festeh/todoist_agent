@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; // Import async library for Timer
 
-class SecondScreen extends StatefulWidget {
-  const SecondScreen({super.key});
+class AiFlow extends StatefulWidget {
+  const AiFlow({super.key});
 
   @override
-  State<SecondScreen> createState() => _SecondScreenState();
+  State<AiFlow> createState() => _AiFlowState();
 }
 
-class _SecondScreenState extends State<SecondScreen> {
+class _AiFlowState extends State<AiFlow> {
   final Stopwatch _stopwatch = Stopwatch();
   late Timer _timer;
   String _elapsedTime = _formatTime(0);
@@ -17,7 +17,6 @@ class _SecondScreenState extends State<SecondScreen> {
   void initState() {
     super.initState();
     _stopwatch.start();
-    // Update the UI every 50 milliseconds
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_stopwatch.isRunning) {
         setState(() {
@@ -44,7 +43,7 @@ class _SecondScreenState extends State<SecondScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Timer Screen'),
+        title: const Text('AI Flow'),
         // The AppBar automatically includes a back button
       ),
       body: Center(
