@@ -102,7 +102,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _pressButton,
         tooltip: 'Press Me',
-        child: const Icon(Icons.add), // Example icon
+        child: const Icon(Icons.mic), // Microphone icon
       ),
       // Ensure the button is positioned at the bottom right
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
