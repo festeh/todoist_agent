@@ -42,7 +42,20 @@ class _MyHomePageState extends State<MyHomePage> {
         appBar: AppBar(
           title: Center(
             // Display the status indicator in the center of the AppBar
-            child: Text('Status: ${_getStatusText()}'),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                // Use a background color for the oval
+                color: Colors.blueGrey[700], // Example color
+                // Make it oval/pill-shaped
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              child: Text(
+                'Status: ${_getStatusText()}',
+                // Ensure text is visible on the background
+                style: const TextStyle(color: Colors.white),
+              ),
+            ),
           ),
         ),
         // Use FloatingActionButton for the bottom-right button
