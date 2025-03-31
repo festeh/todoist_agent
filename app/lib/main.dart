@@ -1,8 +1,27 @@
 import 'package:flutter/material.dart';
 import 'second_screen.dart';
+import 'package:flutter/services.dart';
 
 // Define the possible states for the application status
 enum AppStatus { idle, pressed }
+
+class PressButtonIntent extends Intent {
+  const PressButtonIntent();
+}
+
+// Define an Action that calls the _pressButton callback
+class PressButtonAction extends Action<PressButtonIntent> {
+  PressButtonAction(this.callback);
+
+  final VoidCallback callback;
+
+  @override
+  Object? invoke(PressButtonIntent intent) {
+    callback();
+    // Return null because the action doesn't produce a result.
+    return null;
+  }
+}
 
 void main() {
   runApp(const MyApp()); // Run the root App widget
@@ -56,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final scaffold = Scaffold(
       appBar: AppBar(
         title: Center(
           // Display the status indicator in the center of the AppBar
@@ -91,5 +110,24 @@ class _MyHomePageState extends State<MyHomePage> {
         // Placeholder for main content, can be removed or replaced later
       ),
     );
+    final isLinux = Theme.of(context).platform == TargetPlatform.linux;
+    if (isLinux) {
+      final shortcuts = <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.keyS): const PressButtonIntent(),
+      };
+
+      final actions = <Type, Action<Intent>>{
+        PressButtonIntent: PressButtonAction(_pressButton),
+      };
+
+      return Actions(
+        actions: actions,
+        child: Shortcuts(
+          shortcuts: shortcuts,
+          child: Focus(autofocus: true, child: scaffold),
+        ),
+      );
+    }
+    return scaffold;
   }
 }
