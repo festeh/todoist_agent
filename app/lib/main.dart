@@ -29,9 +29,9 @@ class _MyHomePageState extends State<MyHomePage> {
   String _getStatusText() {
     switch (_status) {
       case AppStatus.idle:
-        return 'IDLE';
+        return 'Idle';
       case AppStatus.pressed:
-        return 'PRESSED';
+        return 'Pressed';
     }
   }
 
@@ -43,7 +43,10 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Center(
             // Display the status indicator in the center of the AppBar
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               decoration: BoxDecoration(
                 // Use a background color for the oval
                 color: Colors.blueGrey[700], // Example color
@@ -51,7 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 borderRadius: BorderRadius.circular(20.0),
               ),
               child: Text(
-                'Status: ${_getStatusText()}',
+                _getStatusText(),
                 // Ensure text is visible on the background
                 style: const TextStyle(color: Colors.white),
               ),
@@ -68,7 +71,6 @@ class _MyHomePageState extends State<MyHomePage> {
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         body: const Center(
           // Placeholder for main content, can be removed or replaced later
-          child: Text('Main Content Area'),
         ),
       ),
     );
