@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'ai_flow.dart';
 import 'package:flutter/services.dart';
+import 'theme.dart';
 
 class PressButtonIntent extends Intent {
   const PressButtonIntent();
@@ -27,8 +28,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MyHomePage(), // Set MyHomePage as the initial route
+    return MaterialApp(
+      theme: darkTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.dark,
+      home: const MyHomePage(),
     );
   }
 }
@@ -54,12 +58,17 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final scaffold = Scaffold(
-      appBar: AppBar(title: Center()),
+      appBar: AppBar(
+        backgroundColor: Colors.grey[900],
+        title: const Center(),
+      ),
       // Use FloatingActionButton for the bottom-right button
       floatingActionButton: FloatingActionButton(
         onPressed: _pressButton,
         tooltip: 'Press Me',
-        child: const Icon(Icons.mic), // Microphone icon
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+        child: const Icon(Icons.mic),
       ),
       // Ensure the button is positioned at the bottom right
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
