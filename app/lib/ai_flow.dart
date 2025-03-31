@@ -1,5 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'dart:async'; // Import async library for Timer
+import 'audio_recorder.dart'; // Import the recorder service
 
 class AiFlow extends StatefulWidget {
   const AiFlow({super.key});
@@ -12,10 +13,17 @@ class _AiFlowState extends State<AiFlow> {
   final Stopwatch _stopwatch = Stopwatch();
   late Timer _timer;
   String _elapsedTime = _formatTime(0);
+  final AudioRecorderService _audioRecorderService = AudioRecorderService();
+  bool _isRecording = false; // Track recording state
 
   @override
   void initState() {
     super.initState();
+    _startTimerAndRecording();
+  }
+
+  Future<void> _startTimerAndRecording() async {
+    // Start stopwatch and timer
     _stopwatch.start();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_stopwatch.isRunning) {
@@ -24,12 +32,29 @@ class _AiFlowState extends State<AiFlow> {
         });
       }
     });
+
+    // Start recording
+    await _audioRecorderService.startRecording();
+    setState(() {
+      _isRecording = true; // Update state after attempting to start
+    });
+  }
+
+  Future<void> _stopTimerAndRecording() async {
+    _timer.cancel();
+    _stopwatch.stop();
+    if (_isRecording) {
+      await _audioRecorderService.stopRecording();
+      setState(() {
+        _isRecording = false;
+      });
+    }
   }
 
   @override
   void dispose() {
-    _timer.cancel(); // Cancel the timer to avoid memory leaks
-    _stopwatch.stop();
+    _stopTimerAndRecording(); // Ensure recording is stopped
+    _audioRecorderService.dispose(); // Dispose the recorder resources
     super.dispose();
   }
 
@@ -60,12 +85,15 @@ class _AiFlowState extends State<AiFlow> {
             const SizedBox(height: 20), // Add some space
             // Done button
             ElevatedButton(
-              onPressed: () {
-                _stopwatch.stop();
-                Navigator.pop(context);
+              onPressed: () async {
+                await _stopTimerAndRecording();
+                if (mounted) { // Check if the widget is still in the tree
+                  Navigator.pop(context);
+                }
               },
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
               child: const Text('Done'),
             ),
