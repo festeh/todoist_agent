@@ -59,15 +59,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final scaffold = Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
         title: const Center(),
       ),
       // Use FloatingActionButton for the bottom-right button
       floatingActionButton: FloatingActionButton(
         onPressed: _pressButton,
         tooltip: 'Press Me',
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
         child: const Icon(Icons.mic),
       ),
       // Ensure the button is positioned at the bottom right

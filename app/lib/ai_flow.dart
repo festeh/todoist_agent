@@ -43,9 +43,7 @@ class _AiFlowState extends State<AiFlow> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[900],
         title: const Text('AI Flow'),
-        foregroundColor: Colors.white,
       ),
       body: Center(
         child: Column(
@@ -67,8 +65,6 @@ class _AiFlowState extends State<AiFlow> {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
               child: const Text('Done'),
