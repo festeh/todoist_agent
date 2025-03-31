@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'second_screen.dart';
+import 'ai_flow.dart';
 import 'package:flutter/services.dart';
 
 // Define the possible states for the application status
