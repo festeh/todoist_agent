@@ -1,5 +1,5 @@
-name: app
-description: "A new Flutter project."
+name: todoist_agent
+description: "An AI Agent for managing your Todoist tasks"
 publish_to: 'none'
 version: 0.1.0
 
