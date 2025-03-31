@@ -11,14 +11,14 @@ class SecondScreen extends StatefulWidget {
 class _SecondScreenState extends State<SecondScreen> {
   final Stopwatch _stopwatch = Stopwatch();
   late Timer _timer;
-  String _elapsedTime = '00:000';
+  String _elapsedTime = _formatTime(0);
 
   @override
   void initState() {
     super.initState();
     _stopwatch.start();
     // Update the UI every 50 milliseconds
-    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_stopwatch.isRunning) {
         setState(() {
           _elapsedTime = _formatTime(_stopwatch.elapsedMilliseconds);
@@ -34,13 +34,10 @@ class _SecondScreenState extends State<SecondScreen> {
     super.dispose();
   }
 
-  // Format milliseconds into SS:XXX format
-  String _formatTime(int milliseconds) {
+  static String _formatTime(int milliseconds) {
     int seconds = (milliseconds / 1000).truncate();
-    int hundreds = ((milliseconds % 1000) / 10).truncate(); // Get hundredths for XXX
     String secondsStr = seconds.toString().padLeft(2, '0');
-    String hundredsStr = hundreds.toString().padLeft(3, '0'); // Pad milliseconds
-    return '$secondsStr:$hundredsStr';
+    return secondsStr;
   }
 
   @override
@@ -57,7 +54,10 @@ class _SecondScreenState extends State<SecondScreen> {
             // Display the timer
             Text(
               _elapsedTime,
-              style: Theme.of(context).textTheme.headlineMedium, // Make text larger
+              style:
+                  Theme.of(
+                    context,
+                  ).textTheme.headlineMedium, // Make text larger
             ),
             const SizedBox(height: 20), // Add some space
             // Done button
