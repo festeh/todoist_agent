@@ -19,9 +19,16 @@ class AudioRecorderService {
     try {
       final directory = await getApplicationDocumentsDirectory();
       // Consider using a more robust naming scheme (e.g., timestamp)
-      _recordingPath = '${directory.path}/recording.m4a'; 
-      
-      const config = RecordConfig(encoder: AudioEncoder.aacLc); // Using AAC LC encoder
+      _recordingPath = '${directory.path}/recording.opus';
+
+      const config = RecordConfig(
+        encoder: AudioEncoder.opus,
+        sampleRate: 16000,
+        numChannels: 1,
+        noiseSuppress: true,
+        autoGain: true,
+        bitRate: 16000,
+      );
 
       // Start recording to file
       await _audioRecorder.start(config, path: _recordingPath!);
@@ -36,8 +43,7 @@ class AudioRecorderService {
     try {
       final path = await _audioRecorder.stop();
       debugPrint("Recording stopped: $path");
-      // The path returned by stop() might be the actual final path
-      _recordingPath = path; 
+      _recordingPath = path;
       return _recordingPath;
     } catch (e) {
       debugPrint("Error stopping recording: $e");
@@ -58,6 +64,7 @@ class AudioRecorderService {
     // in the latest versions. You might need to manage state externally
     // based on start/stop calls if precise synchronous status is needed.
     // For now, we can infer based on whether stopRecording has been called successfully.
-    return _recordingPath != null; // Simplistic check, assumes path is set only during recording
+    return _recordingPath !=
+        null; // Simplistic check, assumes path is set only during recording
   }
 }
