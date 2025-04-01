@@ -13,7 +13,6 @@ class AudioRecorderService {
   Future<void> startRecording() async {
     if (!await hasPermission()) {
       debugPrint("Recording permission not granted.");
-      // Consider requesting permission here or informing the user
       return;
     }
 
