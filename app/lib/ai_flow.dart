@@ -83,6 +83,19 @@ class _AiFlowState extends State<AiFlow> {
                   ).textTheme.headlineMedium, // Make text larger
             ),
             const SizedBox(height: 20), // Add some space
+            // Stop button
+            ElevatedButton(
+              onPressed: _isRecording ? _stopTimerAndRecording : null, // Only enable if recording
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: const RoundedRectangleBorder( // Explicitly rectangular
+                  borderRadius: BorderRadius.zero, // Or a small radius if preferred
+                ),
+              ),
+              child: const Text('Stop'),
+            ),
+            const SizedBox(height: 20), // Add some space between buttons
             // Done button
             ElevatedButton(
               onPressed: () async {
