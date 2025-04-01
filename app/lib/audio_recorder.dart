@@ -19,7 +19,7 @@ class AudioRecorderService {
     try {
       final directory = await getApplicationDocumentsDirectory();
       // Consider using a more robust naming scheme (e.g., timestamp)
-      _recordingPath = '${directory.path}/recording.opus';
+      _recordingPath = '${directory.path}/recording.ogg';
 
       const config = RecordConfig(
         encoder: AudioEncoder.opus,

@@ -67,9 +67,7 @@ class _AiFlowState extends State<AiFlow> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Flow'),
-      ),
+      appBar: AppBar(title: const Text('AI Flow')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -85,30 +83,22 @@ class _AiFlowState extends State<AiFlow> {
             const SizedBox(height: 20), // Add some space
             // Stop button
             ElevatedButton(
-              onPressed: _isRecording ? _stopTimerAndRecording : null, // Only enable if recording
+              onPressed:
+                  _isRecording
+                      ? _stopTimerAndRecording
+                      : null, // Only enable if recording
               style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: const RoundedRectangleBorder( // Explicitly rectangular
-                  borderRadius: BorderRadius.zero, // Or a small radius if preferred
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                shape: const RoundedRectangleBorder(
+                  // Explicitly rectangular
+                  borderRadius:
+                      BorderRadius.zero, // Or a small radius if preferred
                 ),
               ),
               child: const Text('Stop'),
-            ),
-            const SizedBox(height: 20), // Add some space between buttons
-            // Done button
-            ElevatedButton(
-              onPressed: () async {
-                await _stopTimerAndRecording();
-                if (mounted) { // Check if the widget is still in the tree
-                  Navigator.pop(context);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              ),
-              child: const Text('Done'),
             ),
           ],
         ),
