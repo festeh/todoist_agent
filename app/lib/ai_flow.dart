@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'audio_recorder.dart'; // Import the recorder service
+import 'audio_recorder.dart';
+import 'websocket_manager.dart';
 
 class AiFlow extends StatefulWidget {
   const AiFlow({super.key});
@@ -13,13 +14,19 @@ class _AiFlowState extends State<AiFlow> {
   final Stopwatch _stopwatch = Stopwatch();
   late Timer _timer;
   String _elapsedTime = _formatTime(0);
+
   final AudioRecorderService _audioRecorderService = AudioRecorderService();
-  bool _isRecording = false; // Track recording state
+  bool _isRecording = false;
+
+  late WebSocketManager _webSocketManager;
+
+  ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
 
   @override
   void initState() {
     super.initState();
     _startTimerAndRecording();
+    _initWebSocket();
   }
 
   Future<void> _startTimerAndRecording() async {
@@ -40,6 +47,30 @@ class _AiFlowState extends State<AiFlow> {
     });
   }
 
+  void _initWebSocket() {
+    final websocketUrl = const String.fromEnvironment(
+      'WEBSOCKET_URL',
+      defaultValue: 'ws://localhost:8080/ws',
+    );
+
+    _webSocketManager = WebSocketManager(websocketUrl);
+
+    _webSocketManager.onStatusChange.listen((status) {
+      setState(() {
+        debugPrint('WebSocket status changed: $status');
+        _connectionStatus = ConnectionStatus.connected;
+      });
+    });
+
+    _webSocketManager.onError.listen((error) {
+      setState(() {
+        _connectionStatus = ConnectionStatus.error;
+      });
+    });
+
+    _webSocketManager.connect();
+  }
+
   Future<void> _stopTimerAndRecording() async {
     _timer.cancel();
     _stopwatch.stop();
@@ -53,8 +84,9 @@ class _AiFlowState extends State<AiFlow> {
 
   @override
   void dispose() {
-    _stopTimerAndRecording(); // Ensure recording is stopped
-    _audioRecorderService.dispose(); // Dispose the recorder resources
+    _stopTimerAndRecording();
+    _audioRecorderService.dispose();
+    _webSocketManager.dispose();
     super.dispose();
   }
 
@@ -66,6 +98,7 @@ class _AiFlowState extends State<AiFlow> {
 
   @override
   Widget build(BuildContext context) {
+    final connectionInfo = getConnectionInfo(_connectionStatus);
     return Scaffold(
       appBar: AppBar(title: const Text('AI Flow')),
       body: Center(
@@ -106,3 +139,55 @@ class _AiFlowState extends State<AiFlow> {
     );
   }
 }
+// Widget _buildConnectionStatusWidget() {
+//     Color statusColor;
+//     String statusText;
+//
+//     switch (_connectionStatus) {
+//       case ConnectionStatus.disconnected:
+//         statusColor = Colors.grey;
+//         statusText = 'Disconnected';
+//         break;
+//       case ConnectionStatus.connecting:
+//         statusColor = Colors.orange;
+//         statusText = 'Connecting...';
+//         break;
+//       case ConnectionStatus.connected:
+//         statusColor = Colors.green;
+//         statusText = 'Connected';
+//         break;
+//       case ConnectionStatus.error:
+//         statusColor = Colors.red;
+//         statusText = 'Error: $_connectionError';
+//         break;
+//     }
+//
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+//       decoration: BoxDecoration(
+//         color: statusColor.withOpacity(0.2),
+//         borderRadius: BorderRadius.circular(20.0),
+//         border: Border.all(color: statusColor),
+//       ),
+//       child: Row(
+//         mainAxisSize: MainAxisSize.min,
+//         children: [
+//           Icon(
+//             _connectionStatus == ConnectionStatus.connected
+//                 ? Icons.check_circle
+//                 : _connectionStatus == ConnectionStatus.connecting
+//                     ? Icons.sync
+//                     : _connectionStatus == ConnectionStatus.error
+//                         ? Icons.error
+//                         : Icons.offline_bolt,
+//             color: statusColor,
+//           ),
+//           const SizedBox(width: 8),
+//           Text(
+//             statusText,
+//             style: TextStyle(color: statusColor),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
