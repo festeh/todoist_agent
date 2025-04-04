@@ -15,6 +15,7 @@ authors = [
 dependencies = [
     "fastapi>=0.100.0", # Modern async web framework
     "groq>=0.22.0",
+    "openai>=1.70.0",
     "uvicorn[standard]>=0.20.0", # ASGI server (includes performance extras)
 ]
 
