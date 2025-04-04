@@ -13,6 +13,7 @@ authors = [
     { name = "Dmitrii Lipin", email = "your.email@example.com" }, # Replace with your details
 ]
 dependencies = [
+    "dotenv>=0.9.9",
     "fastapi>=0.100.0", # Modern async web framework
     "groq>=0.22.0",
     "openai>=1.70.0",
