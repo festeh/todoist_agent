@@ -30,8 +30,9 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             message = await websocket.receive()
+            print(f"Received message: {message}")
 
-            if "text" in message:
+            if message.get("text", False):
                 data: str = message["text"]
                 if data == "START_AUDIO":
                     audio_buffer = bytearray()
@@ -58,7 +59,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 else:
                     print(f"Received text message: {data}")
 
-            elif "bytes" in message:
+            elif message.get("bytes", False):
                 audio_chunk: bytes = message["bytes"]
                 audio_buffer.extend(audio_chunk)
                 print(
@@ -67,7 +68,3 @@ async def websocket_endpoint(websocket: WebSocket):
 
     except WebSocketDisconnect:
         print(f"Client {websocket.client} disconnected")
-        # Clean up if client disconnects mid-stream
-        if receiving_audio:
-            print("Client disconnected during audio transmission.")
-            # Optionally process the incomplete audio_buffer or discard it

@@ -28,7 +28,7 @@ class AudioRecorderService {
         numChannels: 1,
         noiseSuppress: true,
         autoGain: true,
-        bitRate: 16000,
+        // bitRate: 16000,
       );
 
       // Start recording to file
