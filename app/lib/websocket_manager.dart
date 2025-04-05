@@ -1,14 +1,6 @@
 import 'dart:async';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter/material.dart';
-import 'theme.dart';
-
-class ConnectionInfo {
-  final String status;
-  final Color color;
-
-  ConnectionInfo(this.status, this.color);
-}
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
 
@@ -102,18 +94,5 @@ class WebSocketManager {
     disconnect();
     _statusController.close();
     _errorController.close();
-  }
-}
-
-ConnectionInfo getConnectionInfo(ConnectionStatus status) {
-  switch (status) {
-    case ConnectionStatus.connected:
-      return ConnectionInfo('Connected', CatppuccinMocha.green);
-    case ConnectionStatus.error:
-      return ConnectionInfo('Error', CatppuccinMocha.red);
-    case ConnectionStatus.disconnected:
-      return ConnectionInfo('Disconnected', CatppuccinMocha.mauve);
-    case ConnectionStatus.connecting:
-      return ConnectionInfo('Connecting...', CatppuccinMocha.yellow);
   }
 }

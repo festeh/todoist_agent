@@ -22,6 +22,8 @@ class _AiFlowState extends State<AiFlow> {
 
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
 
+  String _connectionError = '';
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +52,7 @@ class _AiFlowState extends State<AiFlow> {
   void _initWebSocket() {
     final websocketUrl = const String.fromEnvironment(
       'WEBSOCKET_URL',
-      defaultValue: 'ws://localhost:8080/ws',
+      defaultValue: 'ws://localhost:8000/connect',
     );
 
     _webSocketManager = WebSocketManager(websocketUrl);
@@ -65,6 +67,7 @@ class _AiFlowState extends State<AiFlow> {
     _webSocketManager.onError.listen((error) {
       setState(() {
         _connectionStatus = ConnectionStatus.error;
+        _connectionError = error;
       });
     });
 
@@ -96,9 +99,58 @@ class _AiFlowState extends State<AiFlow> {
     return secondsStr;
   }
 
+  Widget _buildConnectionStatusWidget() {
+    Color statusColor;
+    String statusText;
+
+    switch (_connectionStatus) {
+      case ConnectionStatus.disconnected:
+        statusColor = Colors.grey;
+        statusText = 'Disconnected';
+        break;
+      case ConnectionStatus.connecting:
+        statusColor = Colors.orange;
+        statusText = 'Connecting...';
+        break;
+      case ConnectionStatus.connected:
+        statusColor = Colors.green;
+        statusText = 'Connected';
+        break;
+      case ConnectionStatus.error:
+        statusColor = Colors.red;
+        statusText = 'Error: $_connectionError';
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20.0),
+        border: Border.all(color: statusColor),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _connectionStatus == ConnectionStatus.connected
+                ? Icons.check_circle
+                : _connectionStatus == ConnectionStatus.connecting
+                ? Icons.sync
+                : _connectionStatus == ConnectionStatus.error
+                ? Icons.error
+                : Icons.offline_bolt,
+            color: statusColor,
+          ),
+          const SizedBox(width: 8),
+          Text(statusText, style: TextStyle(color: statusColor)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final connectionInfo = getConnectionInfo(_connectionStatus);
     return Scaffold(
       appBar: AppBar(title: const Text('AI Flow')),
       body: Center(
@@ -126,68 +178,17 @@ class _AiFlowState extends State<AiFlow> {
                   vertical: 16,
                 ),
                 shape: const RoundedRectangleBorder(
-                  // Explicitly rectangular
                   borderRadius:
                       BorderRadius.zero, // Or a small radius if preferred
                 ),
               ),
               child: const Text('Stop'),
             ),
+            const SizedBox(height: 20), // Add some space
+            _buildConnectionStatusWidget(),
           ],
         ),
       ),
     );
   }
 }
-// Widget _buildConnectionStatusWidget() {
-//     Color statusColor;
-//     String statusText;
-//
-//     switch (_connectionStatus) {
-//       case ConnectionStatus.disconnected:
-//         statusColor = Colors.grey;
-//         statusText = 'Disconnected';
-//         break;
-//       case ConnectionStatus.connecting:
-//         statusColor = Colors.orange;
-//         statusText = 'Connecting...';
-//         break;
-//       case ConnectionStatus.connected:
-//         statusColor = Colors.green;
-//         statusText = 'Connected';
-//         break;
-//       case ConnectionStatus.error:
-//         statusColor = Colors.red;
-//         statusText = 'Error: $_connectionError';
-//         break;
-//     }
-//
-//     return Container(
-//       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-//       decoration: BoxDecoration(
-//         color: statusColor.withOpacity(0.2),
-//         borderRadius: BorderRadius.circular(20.0),
-//         border: Border.all(color: statusColor),
-//       ),
-//       child: Row(
-//         mainAxisSize: MainAxisSize.min,
-//         children: [
-//           Icon(
-//             _connectionStatus == ConnectionStatus.connected
-//                 ? Icons.check_circle
-//                 : _connectionStatus == ConnectionStatus.connecting
-//                     ? Icons.sync
-//                     : _connectionStatus == ConnectionStatus.error
-//                         ? Icons.error
-//                         : Icons.offline_bolt,
-//             color: statusColor,
-//           ),
-//           const SizedBox(width: 8),
-//           Text(
-//             statusText,
-//             style: TextStyle(color: statusColor),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
