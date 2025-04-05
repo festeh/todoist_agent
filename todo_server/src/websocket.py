@@ -8,6 +8,8 @@ import json
 from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
 
+from .groq_manager import GroqManager
+
 
 @dataclass
 class Error:
