@@ -61,20 +61,21 @@ class _AiFlowState extends State<AiFlow> {
     });
 
     _webSocketManager.onAsrMessage.listen((message) {
-      if (mounted) { // Ensure widget is still in the tree
+      if (mounted) {
         setState(() {
-          _asrMessage = message; // Update ASR message state
+          _asrMessage = message;
           debugPrint('UI updated with ASR: $message');
         });
       }
     });
 
     _webSocketManager.onError.listen((error) {
-      if (mounted) { // Ensure widget is still in the tree
+      if (mounted) {
         setState(() {
-        _connectionStatus = ConnectionStatus.error;
-        _connectionError = error;
-      });
+          _connectionStatus = ConnectionStatus.error;
+          _connectionError = error;
+        });
+      }
     });
 
     _webSocketManager.connect();

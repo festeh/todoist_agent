@@ -4,6 +4,7 @@ including text messages and chunked audio data transfer.
 """
 
 from dataclasses import dataclass
+import json
 from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
 
@@ -13,7 +14,7 @@ class Error:
     desc: str
 
     def to_msg(self):
-        return str({"type": "error", "message": self.desc})
+        return json.dumps({"type": "error", "message": self.desc})
 
 
 @dataclass
@@ -21,7 +22,7 @@ class Info:
     desc: str
 
     def to_msg(self):
-        return str({"type": "info", "message": self.desc})
+        return json.dumps({"type": "info", "message": self.desc})
 
 
 @dataclass
@@ -29,7 +30,7 @@ class Asr:
     desc: str
 
     def to_msg(self):
-        return str({"type": "asr", "message": self.desc})
+        return json.dumps({"type": "asr", "message": self.desc})
 
 
 async def websocket_endpoint(websocket: WebSocket):

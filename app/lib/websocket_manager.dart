@@ -15,7 +15,8 @@ class WebSocketManager {
   // Stream controllers to broadcast changes
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _errorController = StreamController<String>.broadcast();
-  final _asrMessageController = StreamController<String>.broadcast(); // For ASR messages
+  final _asrMessageController =
+      StreamController<String>.broadcast(); // For ASR messages
 
   WebSocketManager(this._url);
 
@@ -26,7 +27,8 @@ class WebSocketManager {
   // Stream getters
   Stream<ConnectionStatus> get onStatusChange => _statusController.stream;
   Stream<String> get onError => _errorController.stream;
-  Stream<String> get onAsrMessage => _asrMessageController.stream; // Public stream for ASR
+  Stream<String> get onAsrMessage =>
+      _asrMessageController.stream; // Public stream for ASR
 
   Future<void> connect() async {
     if (_status == ConnectionStatus.connected ||
@@ -39,32 +41,16 @@ class WebSocketManager {
     try {
       _channel = WebSocketChannel.connect(Uri.parse(_url));
 
-      // Listen for connection events
       _channel!.stream.listen(
         (message) {
-          // Handle incoming messages
           debugPrint('Raw WebSocket message: $message');
-          try {
-            // Attempt to decode as JSON
-            final decoded = jsonDecode(message);
-            if (decoded is Map<String, dynamic>) {
-              // Check for ASR type and message field
-              if (decoded['type'] == 'asr' && decoded.containsKey('message')) {
-                final asrText = decoded['message'] as String;
-                _asrMessageController.add(asrText); // Add to ASR stream
-                debugPrint('Received ASR message: $asrText');
-              } else {
-                // Handle other JSON message types if needed
-                debugPrint('Received other JSON message: $decoded');
-              }
-            } else {
-              // Handle non-map JSON or plain text messages if necessary
-              debugPrint('Received non-JSON or non-map message: $message');
-            }
-          } catch (e) {
-            // Handle cases where the message is not valid JSON
-            debugPrint('Failed to decode WebSocket message as JSON: $e');
-            debugPrint('Original message: $message');
+          final decoded = jsonDecode(message);
+          if (decoded['type'] == 'asr' && decoded.containsKey('message')) {
+            final asrText = decoded['message'] as String;
+            _asrMessageController.add(asrText);
+            debugPrint('Received ASR message: $asrText');
+          } else {
+            debugPrint('Received other JSON message: $decoded');
           }
         },
         onDone: () {
