@@ -54,6 +54,7 @@ class _AiFlowState extends State<AiFlow> {
     _webSocketManager = WebSocketManager(websocketUrl);
 
     _webSocketManager.onStatusChange.listen((status) {
+      if (!mounted) return;
       setState(() {
         debugPrint('WebSocket status changed: $status');
         _connectionStatus = ConnectionStatus.connected;
@@ -61,21 +62,19 @@ class _AiFlowState extends State<AiFlow> {
     });
 
     _webSocketManager.onAsrMessage.listen((message) {
-      if (mounted) {
-        setState(() {
-          _asrMessage = message;
-          debugPrint('UI updated with ASR: $message');
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _asrMessage = message;
+        debugPrint('UI updated with ASR: $message');
+      });
     });
 
     _webSocketManager.onError.listen((error) {
-      if (mounted) {
-        setState(() {
-          _connectionStatus = ConnectionStatus.error;
-          _connectionError = error;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _connectionStatus = ConnectionStatus.error;
+        _connectionError = error;
+      });
     });
 
     _webSocketManager.connect();

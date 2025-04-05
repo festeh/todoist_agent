@@ -141,6 +141,6 @@ class WebSocketManager {
     disconnect();
     _statusController.close();
     _errorController.close();
-    _asrMessageController.close(); // Close the new controller
+    _asrMessageController.close();
   }
 }

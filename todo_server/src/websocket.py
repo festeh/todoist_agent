@@ -61,13 +61,10 @@ async def websocket_endpoint(websocket: WebSocket):
                             )
                         ).to_msg()
                     )
-                    # Add 200 ms delay...
-                    # await asyncio.sleep(0.2) # Delay might not be needed now
                     try:
-                        await websocket.send_text(Info("Transcribing audio...").to_msg())
                         transcription = await groq_manager.transcribe_audio(
-                            bytes(audio_buffer)
-                        )  # Convert buffer to bytes
+                            bytes(audio_buffer), file_format="opus"
+                        )
                         await websocket.send_text(Asr(transcription).to_msg())
                     except Exception as e:
                         error_message = f"Transcription failed: {e}"
