@@ -23,30 +23,10 @@ class GroqManager:
         if not api_key:
             raise ValueError("GROQ_API_KEY environment variable not set.")
         self._client = AsyncGroq(api_key=api_key)
-        # Consider making the model configurable
         self._transcription_model = "whisper-large-v3"
 
     async def transcribe_audio(self, audio_bytes: bytes, file_format: str = "wav") -> str:
-        """
-        Transcribes the given audio bytes using the Groq API.
-
-        Args:
-            audio_bytes: The audio data as bytes.
-            file_format: The format of the audio data (e.g., "wav", "mp3").
-                         Defaults to "wav". This helps Groq process the file correctly.
-
-        Returns:
-            The transcribed text.
-
-        Raises:
-            groq.APIError: If the Groq API call fails.
-        """
         print(f"Transcribing {len(audio_bytes)} bytes of audio using Groq ({self._transcription_model})...")
-
-        # The Groq client expects the 'file' argument as a tuple:
-        # (filename, file_content_bytes, content_type)
-        # We use BytesIO to wrap the raw bytes into a file-like object if needed,
-        # but the tuple format is often preferred by underlying HTTP libraries.
         file_tuple = (f"audio.{file_format}", audio_bytes, f"audio/{file_format}")
 
         try:
