@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert'; // Import for jsonEncode
+import 'dart:typed_data'; // Import for Uint8List
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // Keep for debugPrint or potential UI interaction
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
 
@@ -79,6 +81,58 @@ class WebSocketManager {
       return false;
     }
   }
+
+  /// Sends audio data in chunks over the WebSocket.
+  ///
+  /// Sends a START_AUDIO message, then chunks the [audioBytes] into 1MB segments
+  /// sending each as a {"bytes": [chunk]} message, and finally sends an END_AUDIO message.
+  /// Returns true if all messages were sent successfully, false otherwise.
+  Future<bool> sendAudio(Uint8List audioBytes) async {
+    if (_status != ConnectionStatus.connected) {
+      debugPrint('WebSocket not connected. Cannot send audio.');
+      _updateError('Attempted to send audio while disconnected.');
+      return false;
+    }
+
+    const int chunkSize = 1024 * 1024; // 1MB chunk size
+
+    try {
+      // 1. Send START_AUDIO message
+      final startMessage = jsonEncode({'text': 'START_AUDIO'});
+      _channel?.sink.add(startMessage);
+      debugPrint('Sent START_AUDIO marker.');
+
+      // 2. Send audio data in chunks
+      for (int i = 0; i < audioBytes.length; i += chunkSize) {
+        final end = (i + chunkSize < audioBytes.length) ? i + chunkSize : audioBytes.length;
+        // Create a sublist view, then convert to List<int> for JSON encoding
+        final chunk = audioBytes.sublist(i, end).toList();
+        final chunkMessage = jsonEncode({'bytes': chunk});
+        _channel?.sink.add(chunkMessage);
+        // Optional: Add a small delay if needed for flow control, though TCP should handle it.
+        // await Future.delayed(Duration(milliseconds: 10));
+        debugPrint('Sent audio chunk: ${i ~/ chunkSize + 1}');
+      }
+
+      // 3. Send END_AUDIO message
+      final endMessage = jsonEncode({'text': 'END_AUDIO'});
+      _channel?.sink.add(endMessage);
+      debugPrint('Sent END_AUDIO marker.');
+
+      return true; // Indicate success
+    } catch (e) {
+      final errorMessage = 'Failed during audio send process: $e';
+      _updateError(errorMessage);
+      debugPrint(errorMessage);
+      // Attempt to send END_AUDIO even on error? Depends on server requirements.
+      // try {
+      //   final endMessage = jsonEncode({'text': 'END_AUDIO'});
+      //   _channel?.sink.add(endMessage);
+      // } catch (_) {} // Ignore error during cleanup send
+      return false; // Indicate failure
+    }
+  }
+
 
   void _updateStatus(ConnectionStatus status) {
     _status = status;
