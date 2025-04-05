@@ -74,6 +74,10 @@ class _AiFlowState extends State<AiFlow> {
     _timer.cancel();
     _stopwatch.stop();
     await _audioRecorderService.stopRecording();
+    final recorded = await _audioRecorderService.getRecordedBytes();
+    if (recorded != null) {
+      _webSocketManager.sendAudio(recorded);
+    }
   }
 
   @override

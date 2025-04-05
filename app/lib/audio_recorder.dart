@@ -1,8 +1,7 @@
 import 'dart:io'; // Import for File operations
-import 'dart:typed_data'; // Import for Uint8List
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter/foundation.dart'; // For debugPrint
+import 'package:flutter/foundation.dart';
 
 class AudioRecorderService {
   final AudioRecorder _audioRecorder = AudioRecorder();
@@ -60,17 +59,6 @@ class AudioRecorderService {
     debugPrint("Audio recorder disposed.");
   }
 
-  bool isRecording() {
-    // Note: The record package doesn't have a synchronous isRecording status check
-    // in the latest versions. You might need to manage state externally
-    // based on start/stop calls if precise synchronous status is needed.
-    // For now, we can infer based on whether stopRecording has been called successfully.
-    return _recordingPath !=
-        null; // Simplistic check, assumes path is set only during recording
-  }
-
-  /// Reads the recorded audio file and returns its content as bytes.
-  /// Returns null if the recording path is not set or the file doesn't exist.
   Future<Uint8List?> getRecordedBytes() async {
     if (_recordingPath == null) {
       debugPrint("Recording path is not set.");
