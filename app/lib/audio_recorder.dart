@@ -64,10 +64,23 @@ class AudioRecorderService {
       debugPrint("Recording path is not set.");
       return null;
     }
+    const maxRetries = 20;
+    const retryDelay = Duration(milliseconds: 50);
+    bool fileExists = false;
+    var file = File(_recordingPath!);
 
-    final file = File(_recordingPath!);
-    if (!await file.exists()) {
-      debugPrint("Recorded file does not exist: $_recordingPath");
+    for (int i = 0; i < maxRetries; i++) {
+      if (await file.exists()) {
+        fileExists = true;
+        debugPrint("File found after $i attempt(s).");
+        break;
+      }
+      await Future.delayed(retryDelay);
+      file = File(_recordingPath!);
+    }
+
+    if (!fileExists) {
+      debugPrint("File not found");
       return null;
     }
 

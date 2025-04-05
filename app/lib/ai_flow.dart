@@ -80,31 +80,9 @@ class _AiFlowState extends State<AiFlow> {
       return;
     }
 
-    // Retry mechanism to wait for the file to exist
-    const maxRetries = 5;
-    const retryDelay = Duration(milliseconds: 100);
-    bool fileExists = false;
-
-    for (int i = 0; i < maxRetries; i++) {
-      final file = File(recordingPath);
-      if (await file.exists()) {
-        fileExists = true;
-        debugPrint("File found after ${i + 1} attempt(s).");
-        break;
-      }
-      debugPrint("File not found, attempt ${i + 1}/$maxRetries. Waiting...");
-      await Future.delayed(retryDelay);
-    }
-
-    if (fileExists) {
-      final recorded = await _audioRecorderService.getRecordedBytes();
-      if (recorded != null) {
-        _webSocketManager.sendAudio(recorded);
-      } else {
-        debugPrint("Failed to read bytes from existing file: $recordingPath");
-      }
-    } else {
-      debugPrint("File still not found after $maxRetries retries: $recordingPath");
+    final recorded = await _audioRecorderService.getRecordedBytes();
+    if (recorded != null) {
+      _webSocketManager.sendAudio(recorded);
     }
   }
 

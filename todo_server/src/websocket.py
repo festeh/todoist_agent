@@ -30,10 +30,9 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             message = await websocket.receive()
-            print(f"Received message: {message}")
-
             if message.get("text", False):
                 data: str = message["text"]
+                print(f"Received text message: {data}")
                 if data == "START_AUDIO":
                     audio_buffer = bytearray()
                     await websocket.send_text(
@@ -56,8 +55,6 @@ async def websocket_endpoint(websocket: WebSocket):
                         )
                     else:
                         await websocket.send_text("pong")
-                else:
-                    print(f"Received text message: {data}")
 
             elif message.get("bytes", False):
                 audio_chunk: bytes = message["bytes"]
