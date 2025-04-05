@@ -5,6 +5,7 @@ including text messages and chunked audio data transfer.
 
 from dataclasses import dataclass
 from fastapi import WebSocket, WebSocketDisconnect
+import asyncio
 
 
 @dataclass
@@ -21,6 +22,14 @@ class Info:
 
     def to_msg(self):
         return str({"type": "info", "message": self.desc})
+
+
+@dataclass
+class Asr:
+    desc: str
+
+    def to_msg(self):
+        return str({"type": "asr", "message": self.desc})
 
 
 async def websocket_endpoint(websocket: WebSocket):
@@ -46,6 +55,14 @@ async def websocket_endpoint(websocket: WebSocket):
                             "Audio transmission finished. Received {} bytes.".format(
                                 len(audio_buffer)
                             )
+                        ).to_msg()
+                    )
+                    # Add 200 ms delay...
+                    await asyncio.sleep(0.2)
+                    await websocket.send_text(
+                        Asr(
+                            "Transcribing audio..."
+                            # await groq_manager.transcribe_audio(audio_buffer)
                         ).to_msg()
                     )
                 elif data == "ping":
