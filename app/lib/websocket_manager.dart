@@ -8,6 +8,7 @@ enum ConnectionStatus { disconnected, connecting, connected, error }
 
 class WebSocketManager {
   WebSocketChannel? _channel;
+  StreamSubscription? _channelSubscription;
   final String _url;
   ConnectionStatus _status = ConnectionStatus.disconnected;
   String _errorMessage = '';
@@ -41,7 +42,7 @@ class WebSocketManager {
     try {
       _channel = WebSocketChannel.connect(Uri.parse(_url));
 
-      _channel!.stream.listen(
+      _channelSubscription = _channel!.stream.listen(
         (message) {
           debugPrint('Raw WebSocket message: $message');
           final decoded = jsonDecode(message);
@@ -73,9 +74,11 @@ class WebSocketManager {
     }
   }
 
-  void disconnect() {
+  Future<void> disconnect() async {
+    await _channelSubscription?.cancel();
+    _channelSubscription = null;
     _channel?.sink.close();
-    _updateStatus(ConnectionStatus.disconnected);
+    _channel = null;
   }
 
   bool send(dynamic data) {
@@ -137,8 +140,8 @@ class WebSocketManager {
     _errorController.add(message);
   }
 
-  void dispose() {
-    disconnect();
+  void dispose() async {
+    await disconnect();
     _statusController.close();
     _errorController.close();
     _asrMessageController.close();
