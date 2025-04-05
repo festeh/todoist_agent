@@ -20,8 +20,8 @@ class _AiFlowState extends State<AiFlow> {
   late WebSocketManager _webSocketManager;
 
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
-
   String _connectionError = '';
+  String _asrMessage = ''; // State variable for ASR text
 
   @override
   void initState() {
@@ -60,8 +60,18 @@ class _AiFlowState extends State<AiFlow> {
       });
     });
 
+    _webSocketManager.onAsrMessage.listen((message) {
+      if (mounted) { // Ensure widget is still in the tree
+        setState(() {
+          _asrMessage = message; // Update ASR message state
+          debugPrint('UI updated with ASR: $message');
+        });
+      }
+    });
+
     _webSocketManager.onError.listen((error) {
-      setState(() {
+      if (mounted) { // Ensure widget is still in the tree
+        setState(() {
         _connectionStatus = ConnectionStatus.error;
         _connectionError = error;
       });
@@ -184,6 +194,16 @@ class _AiFlowState extends State<AiFlow> {
             ),
             const SizedBox(height: 20), // Add some space
             _buildConnectionStatusWidget(),
+            const SizedBox(height: 20), // Add space before ASR text
+            // Display the ASR message
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text(
+                _asrMessage,
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+            ),
           ],
         ),
       ),
