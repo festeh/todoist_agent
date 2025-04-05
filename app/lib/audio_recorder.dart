@@ -49,7 +49,6 @@ class AudioRecorderService {
       debugPrint("Error stopping recording: $e");
       return null;
     } finally {
-      // It's good practice to dispose the recorder when done
       // dispose(); // Consider if dispose should be called here or elsewhere
     }
   }
