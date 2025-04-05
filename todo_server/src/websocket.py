@@ -37,6 +37,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     audio_buffer = bytearray()
     receiving_audio = False
+    groq_manager = GroqManager()  # Instantiate GroqManager
     try:
         while True:
             message = await websocket.receive()
@@ -59,13 +60,19 @@ async def websocket_endpoint(websocket: WebSocket):
                         ).to_msg()
                     )
                     # Add 200 ms delay...
-                    await asyncio.sleep(0.2)
-                    await websocket.send_text(
-                        Asr(
-                            "Transcribing audio..."
-                            # await groq_manager.transcribe_audio(audio_buffer)
-                        ).to_msg()
-                    )
+                    # await asyncio.sleep(0.2) # Delay might not be needed now
+                    try:
+                        await websocket.send_text(Info("Transcribing audio...").to_msg())
+                        transcription = await groq_manager.transcribe_audio(
+                            bytes(audio_buffer)
+                        )  # Convert buffer to bytes
+                        await websocket.send_text(Asr(transcription).to_msg())
+                    except Exception as e:
+                        error_message = f"Transcription failed: {e}"
+                        print(error_message)
+                        await websocket.send_text(Error(error_message).to_msg())
+                    # Reset buffer after processing
+                    audio_buffer = bytearray()
                 elif data == "ping":
                     if receiving_audio:
                         await websocket.send_text(
