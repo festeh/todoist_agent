@@ -16,7 +16,6 @@ class _AiFlowState extends State<AiFlow> {
   String _elapsedTime = _formatTime(0);
 
   final AudioRecorderService _audioRecorderService = AudioRecorderService();
-  bool _isRecording = false;
 
   late WebSocketManager _webSocketManager;
 
@@ -44,9 +43,6 @@ class _AiFlowState extends State<AiFlow> {
 
     // Start recording
     await _audioRecorderService.startRecording();
-    setState(() {
-      _isRecording = true; // Update state after attempting to start
-    });
   }
 
   void _initWebSocket() {
@@ -77,12 +73,7 @@ class _AiFlowState extends State<AiFlow> {
   Future<void> _stopTimerAndRecording() async {
     _timer.cancel();
     _stopwatch.stop();
-    if (_isRecording) {
-      await _audioRecorderService.stopRecording();
-      setState(() {
-        _isRecording = false;
-      });
-    }
+    await _audioRecorderService.stopRecording();
   }
 
   @override
@@ -168,10 +159,7 @@ class _AiFlowState extends State<AiFlow> {
             const SizedBox(height: 20), // Add some space
             // Stop button
             ElevatedButton(
-              onPressed:
-                  _isRecording
-                      ? _stopTimerAndRecording
-                      : null, // Only enable if recording
+              onPressed: _stopTimerAndRecording,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
