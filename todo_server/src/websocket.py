@@ -3,78 +3,102 @@ WebSocket endpoint logic for handling real-time communication,
 including text messages and chunked audio data transfer.
 """
 
-from dataclasses import dataclass
 import json
-from typing import Union
+from typing import final
 from fastapi import WebSocket, WebSocketDisconnect
-import asyncio
+from enum import StrEnum
+
+from src.ai_manager import AiManager
+from src.code_manager import CodeManager
 
 from .groq_manager import GroqManager
 from .todoist_manager import TodoistManager
 
 
-@dataclass
-class Error:
-    desc: str
-
-    def to_msg(self):
-        return json.dumps({"type": "error", "message": self.desc})
-
-
-@dataclass
-class Info:
-    desc: str
-
-    def to_msg(self):
-        return json.dumps({"type": "info", "message": self.desc})
+class MessageType(StrEnum):
+    ERROR = "error"
+    INFO = "info"
+    TRANSCRIPTION = "transcription"
+    CODE = "code"
+    ANSWER = "answer"
 
 
-@dataclass
-class Asr:
-    desc: str
+@final
+class WebsocketManager:
+    def __init__(self, ws: WebSocket):
+        self.groq_manager = GroqManager()
+        self.todoist_manager = TodoistManager()
+        self.ai_manager = AiManager()
+        self.code_manager = CodeManager()
+        self.ws = ws
 
-    def to_msg(self):
-        return json.dumps({"type": "asr", "message": self.desc})
+        self.reset()
 
+    def reset(self):
+        self.transcription = None
+        self.todoist_coro = None
+        self.audio_buffer = bytearray()
 
-async def audio_finished(
-    websocket: WebSocket,
-    audio_buffer: bytearray,
-    groq_manager: GroqManager,
-    todoist_coro: asyncio.Task[str],
-):
-    print(f"Finished receiving audio: {len(audio_buffer)} bytes")
-    await websocket.send_text(
-        Info(
-            "Audio transmission finished. Received {} bytes.".format(len(audio_buffer))
-        ).to_msg()
-    )
-    transcription: str | None = None
-    try:
-        transcription = await groq_manager.transcribe_audio(
-            bytes(audio_buffer), file_format="opus"
+    async def _send_message(self, message_type: MessageType, message: str):
+        await self.ws.send_text(json.dumps({"type": message_type, "message": message}))
+
+    def fetch_tasks(self):
+        self.todoist_coro = self.todoist_manager.get_tasks()
+
+    def add_chunk(self, chunk: bytes):
+        self.audio_buffer.extend(chunk)
+        print(
+            f"Received audio chunk: {len(chunk)} bytes. Total: {len(self.audio_buffer)} bytes."
         )
-        await websocket.send_text(Asr(transcription).to_msg())
-    except Exception as e:
-        error_message = f"Transcription failed: {e}"
-        print(error_message)
-        await websocket.send_text(Error(error_message).to_msg())
 
-    if transcription is None:
-        return
+    async def init_flow(self):
+        self.reset()
+        self.fetch_tasks()
+        await self._send_message(MessageType.INFO, "Audio transmission started.")
+        print("Started receiving audio.")
 
-    tasks = await todoist_coro
+    async def transcribe(self):
+        try:
+            self.transcription = await self.groq_manager.transcribe_audio(
+                bytes(self.audio_buffer), file_format="opus"
+            )
+            await self._send_message(MessageType.TRANSCRIPTION, self.transcription)
+        except Exception as e:
+            error_message = f"Transcription task failed: {e}"
+            print(error_message)
+            await self._send_message(MessageType.ERROR, error_message)
+
+    async def tasks(self) -> str:
+        if self.todoist_coro is None:
+            print("Error: todoist_coro is None")
+            self.todoist_coro = self.todoist_manager.get_tasks()
+        return await self.todoist_coro
+
+    async def exec_flow(self):
+        n_bytes = len(self.audio_buffer)
+        print(f"Finished receiving audio: {n_bytes} bytes")
+        # await self.ws.send_text(
+        #     Info(f"Audio transmission finished. Received {n_bytes} bytes.").to_msg()
+        # )
+        await self.transcribe()
+        if self.transcription is None:
+            return
+        tasks = await self.tasks()
+        code_info = self.todoist_manager.get_code_info()
+        code = self.ai_manager.get_code_ai_response(
+            tasks, code_info, self.transcription
+        )
+        code_coro = self._send_message(MessageType.CODE, code)
+        exec_result = self.code_manager.execute(code)
+        answer = self.ai_manager.get_answer_ai_response(tasks, code, exec_result)
+        await code_coro
+        await self._send_message(MessageType.ANSWER, answer)
 
 
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    audio_buffer = bytearray()
     receiving_audio = False
-    groq_manager = GroqManager()
-    transcription = None
-
-    todoist_manager = TodoistManager()
-    todoist_coro = None
+    manager = WebsocketManager(websocket)
     try:
         while True:
             message = await websocket.receive()
@@ -82,21 +106,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 data: str = message["text"]
                 print(f"Received text message: {data}")
                 if data == "START_AUDIO":
-                    todoist_coro = todoist_manager.get_tasks()
-                    audio_buffer = bytearray()
-                    await websocket.send_text(
-                        Info("Audio transmission started.").to_msg()
-                    )
-                    print("Started receiving audio.")
+                    await manager.init_flow()
+                    receiving_audio = True
                 elif data == "END_AUDIO":
-                    await audio_finished(
-                        websocket, audio_buffer, groq_manager, todoist_coro
-                    )
-
-                    # cleanup
-                    audio_buffer = bytearray()
-                    todoist_coro = None
-                    transcription = None
+                    await manager.exec_flow()
                 elif data == "ping":
                     if receiving_audio:
                         await websocket.send_text(
@@ -107,10 +120,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
             elif message.get("bytes", False):
                 audio_chunk: bytes = message["bytes"]
-                audio_buffer.extend(audio_chunk)
-                print(
-                    f"Received audio chunk: {len(audio_chunk)} bytes. Total: {len(audio_buffer)} bytes."
-                )
+                manager.add_chunk(audio_chunk)
 
     except WebSocketDisconnect:
         print(f"Client {websocket.client} disconnected")
