@@ -85,13 +85,11 @@ class _AiFlowState extends State<AiFlow> {
         debugPrint('WebSocket status changed: $status');
         _connectionStatus = status; // Update with the actual status
 
-        // If connected and initial text exists and hasn't been sent, send it
         if (status == ConnectionStatus.connected &&
             widget.initialText != null &&
             !_initialTextSent) {
           _webSocketManager.sendTranscription(widget.initialText!);
           _initialTextSent = true; // Mark as sent
-          debugPrint('Sent initial transcription: ${widget.initialText}');
         }
       });
     });
@@ -115,11 +113,18 @@ class _AiFlowState extends State<AiFlow> {
     _webSocketManager.connect();
   }
 
+  void _stop() {
+    _timer.cancel();
+    _stopwatch.stop();
+    setState(() {
+      _recording = false;
+    });
+  }
+
   Future<void> _stopTimerAndRecording() async {
     if (!_recording) return; // Don't stop if not recording
 
-    _timer.cancel();
-    _stopwatch.stop();
+    _stop();
     final recordingPath = await _audioRecorderService.stopRecording();
 
     if (recordingPath == null) {
@@ -137,15 +142,11 @@ class _AiFlowState extends State<AiFlow> {
     } else {
       debugPrint("Failed to get recorded bytes after stopping.");
     }
-
-    setState(() {
-      _recording = false; // Update recording state
-    });
   }
 
   @override
   void dispose() {
-    _stopTimerAndRecording();
+    _stop();
     _audioRecorderService.dispose();
     _webSocketManager.dispose();
     super.dispose();
@@ -224,11 +225,13 @@ class _AiFlowState extends State<AiFlow> {
                       context,
                     ).textTheme.headlineMedium, // Make text larger
               ),
-            if (_recording) const SizedBox(height: 20), // Add space only if timer is shown
+            if (_recording)
+              const SizedBox(height: 20), // Add space only if timer is shown
             // Record/Stop button
             ElevatedButton(
               // Action depends on whether currently recording
-              onPressed: _recording ? _stopTimerAndRecording : _startTimerAndRecording,
+              onPressed:
+                  _recording ? _stopTimerAndRecording : _startTimerAndRecording,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
@@ -239,7 +242,9 @@ class _AiFlowState extends State<AiFlow> {
                       BorderRadius.zero, // Or a small radius if preferred
                 ),
               ),
-              child: Text(_recording ? 'Stop' : 'Record'), // Change text based on state
+              child: Text(
+                _recording ? 'Stop' : 'Record',
+              ), // Change text based on state
             ),
             const SizedBox(height: 20), // Add some space
             _buildConnectionStatusWidget(),
