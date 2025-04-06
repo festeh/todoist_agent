@@ -32,7 +32,6 @@ class _AiFlowState extends State<AiFlow> {
   }
 
   Future<void> _startTimerAndRecording() async {
-    // Start stopwatch and timer
     _stopwatch.start();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_stopwatch.isRunning) {
@@ -42,10 +41,9 @@ class _AiFlowState extends State<AiFlow> {
       }
     });
 
-    // Start recording
     await _audioRecorderService.startRecording();
     setState(() {
-      _recording = true; // Update recording state
+      _recording = true;
     });
   }
 
@@ -100,7 +98,7 @@ class _AiFlowState extends State<AiFlow> {
     }
 
     setState(() {
-      _recording = false; // Update recording state
+      _recording = false;
     });
   }
 
