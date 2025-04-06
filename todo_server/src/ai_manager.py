@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-import openai
+from openai import OpenAI
 from datetime import datetime
 
 _ = load_dotenv()
@@ -11,7 +11,13 @@ class AiManager:
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY environment variable not set.")
+        self.client: OpenAI = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=api_key,
+        )
+
         self.model: str = "meta-llama/llama-4-maverick:free"
+        self.temperature: float = 0.1
 
     def get_system_prompt(self, tasks: str, code_info: str):
         prompt = f"""<info>
@@ -41,6 +47,29 @@ Do not care about commenting code
 You should use client:TodoistAPI to work with Todoist API, that is already presented
 You can also use standard Python libraries
 Try to minimize code length
+Each line you output MUST be a valid Python code
 </constraints>
     """
         return prompt
+
+    def get_ai_response(self, tasks: str, code_info: str, user_request: str):
+        prompt = self.get_system_prompt(tasks, code_info)
+        user_request = f"""<user_request>
+{user_request}
+</user_request>
+        """.strip()
+        response = self.client.chat.completions.create(
+            model=self.model,
+            temperature=self.temperature,
+            stream=False,
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": user_request},
+            ],
+        )
+        completion: str = response.choices[0].message.content
+        if completion.startswith("```") and completion.endswith("```"):
+            completion = completion[3:-3]
+        if completion.startswith("python"):
+            completion = completion[6:]
+        return completion.strip()
