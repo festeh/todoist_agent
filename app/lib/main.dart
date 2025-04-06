@@ -71,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const Expanded(
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Enter text here...',
+                  hintText: 'Enter Task here...',
                   border: OutlineInputBorder(),
                 ),
               ),
