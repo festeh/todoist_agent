@@ -130,6 +130,25 @@ class WebSocketManager {
     }
   }
 
+  Future<bool> sendTranscription(String text) async {
+    if (_status != ConnectionStatus.connected) {
+      debugPrint('WebSocket not connected. Cannot send text.');
+      _updateError('Attempted to send text while disconnected.');
+      return false;
+    }
+
+    try {
+      _channel?.sink.add(jsonEncode({'type': 'transcription', 'message': text}));
+      debugPrint('Sent transcription: $text');
+      return true; 
+    } catch (e) {
+      final errorMessage = 'Failed during text send process: $e';
+      _updateError(errorMessage);
+      debugPrint(errorMessage);
+      return false;
+    }
+  }
+
   void _updateStatus(ConnectionStatus status) {
     _status = status;
     _statusController.add(status);
