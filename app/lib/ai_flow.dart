@@ -248,14 +248,24 @@ class _AiFlowState extends State<AiFlow> {
             ),
             const SizedBox(height: 20), // Add some space
             _buildConnectionStatusWidget(),
-            const SizedBox(height: 20), // Add space before ASR text
-            // Display the ASR message
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                _asrMessage,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
+            const SizedBox(height: 20), // Add space before ASR messages
+            // Display the list of ASR messages
+            Expanded( // Use Expanded to take available space
+              child: ListView.builder(
+                itemCount: _receivedMessages.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 4.0, // Add some vertical spacing between messages
+                    ),
+                    child: Text(
+                      _receivedMessages[index],
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                },
               ),
             ),
           ],
