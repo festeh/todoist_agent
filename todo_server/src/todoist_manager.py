@@ -1,8 +1,10 @@
+from todoist_api_python.api import TodoistAPI
 from todoist_api_python.api_async import TodoistAPIAsync
 from dotenv import load_dotenv
 import os
 import asyncio
 from datetime import date, datetime
+import inspect
 
 from todoist_api_python.models import Task, Project
 
@@ -62,3 +64,23 @@ class TodoistManager:
             output_lines.extend(task_lines)
 
         return "\n".join(output_lines)
+
+
+    def get_code_info(self):
+        client = TodoistAPI
+        ignore = ["__init__", "__exit__", "__enter__", "get_collaborators"]
+        result = ["class TodoistAPI:"]
+        for method in dir(client):
+            if method in ignore:
+                continue
+            attribute = getattr(client, method)
+            if inspect.isfunction(attribute):
+                source = inspect.getsource(attribute)
+                signature = source.split('\n')[0].strip(":")
+                result.append(signature)
+        result.append("")
+        result.append("class Task:")
+        task = Task
+        print("\n".join(result))
+
+        return "todoist"
