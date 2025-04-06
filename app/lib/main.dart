@@ -72,7 +72,9 @@ class _MyHomePageState extends State<MyHomePage> {
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Enter Task here...',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20.0), // Increased radius for more rounded corners
+                  ),
                 ),
               ),
             ),
