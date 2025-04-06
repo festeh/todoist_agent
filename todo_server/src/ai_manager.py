@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import openai
-from datetime import date
+from datetime import datetime
 
 _ = load_dotenv()
 
@@ -32,7 +32,7 @@ Here's an overview of user's tasks, grouped by projects, with optional due date
 </tasks>
 
 <date>
-Today is {date.today()}
+Today is {datetime.now().strftime("%d %b %Y %H:%M")}
 </date>
 
 <constraints>
