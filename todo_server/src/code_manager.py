@@ -9,34 +9,32 @@ class CodeManager:
         manager = TodoistManager(use_async=False)
         self._client = manager._todoist_sync
 
-    def execute(self, code: str) -> tuple[bool, str]:
+    def execute(self, code: str) -> str:
         stdout_capture = io.StringIO()
         try:
-            # Provide the 'client' object and necessary modules like 'datetime'.
-            # This dict will serve as both globals and locals for exec.
             execution_scope = {"client": self._client, "datetime": datetime}
 
             with contextlib.redirect_stdout(stdout_capture):
-                # Use the same dict for globals and locals
                 exec(code, execution_scope, execution_scope)
 
             captured_output = stdout_capture.getvalue().strip()
 
             vars_list: list[str] = [""]
-            # Filter out the initial globals we injected to avoid cluttering the output
-            filtered_locals = {k: v for k, v in execution_scope.items() if k not in ["client", "datetime", "__builtins__"]}
+            filtered_locals = {
+                k: v
+                for k, v in execution_scope.items()
+                if k not in ["client", "datetime", "__builtins__"]
+            }
             for key, value in filtered_locals.items():
                 vars_list.append(f"{key}: {value}")
             captured_output += "\n".join(vars_list)
 
-            print(
-                f"Successfully executed code:\n{code}\nOutput:\n{captured_output.strip()}"
-            )
-            return True, captured_output.strip()
+            captured_output = f"Successfully executed code:\n {captured_output}".strip()
+            print(captured_output)
+            return captured_output
 
         except Exception as e:
-            captured_output = stdout_capture.getvalue()  # Capture output even on error
-            print(
-                f"Error executing code:\n{code}\nError: {e}\nOutput:\n{captured_output}"
-            )
-            return False, captured_output
+            captured_output = stdout_capture.getvalue()
+            result = f"Error executing code:\n {e}. Output: {captured_output}"
+            print(result)
+            return captured_output
