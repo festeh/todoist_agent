@@ -28,17 +28,37 @@ class TodoistManager:
         }
 
         tasks_by_project: Dict[str, List[str]] = {}
+        today = date.today()
+
         for task in tasks:
             project_id = task.project_id
             if project_id not in tasks_by_project:
                 tasks_by_project[project_id] = []
-            tasks_by_project[project_id].append(task.content)
+
+            due_str = ""
+            if task.due and task.due.date:
+                try:
+                    due_date = datetime.strptime(task.due.date, "%Y-%m-%d").date()
+                    if due_date == today:
+                        due_str = " [TODAY]"
+                    else:
+                        due_str = f" [{due_date.strftime('%d %b %Y')}]"
+                except ValueError:
+                    # Handle cases where date format might be different or invalid
+                    due_str = f" [{task.due.string}]" # Fallback to original string
+
+            task_line = f" - {task.content}{due_str}"
+            tasks_by_project[project_id].append(task_line)
 
         output_lines = []
-        for project_id, task_contents in tasks_by_project.items():
+        # Sort projects by name for consistent output
+        sorted_project_ids = sorted(tasks_by_project.keys(), key=lambda pid: project_map.get(pid, ""))
+        
+        for project_id in sorted_project_ids:
+            task_lines = tasks_by_project[project_id]
             project_name = project_map.get(project_id, "Unknown Project")
             output_lines.append(project_name)
-            for content in task_contents:
-                output_lines.append(f" - {content}")
+            # Tasks are already formatted with due dates
+            output_lines.extend(task_lines)
 
         return "\n".join(output_lines)
