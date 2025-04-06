@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Dict
 from todoist_api_python.api_async import TodoistAPIAsync
 from dotenv import load_dotenv
 import os
+import asyncio
 
 from todoist_api_python.models import Task
 
