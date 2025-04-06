@@ -6,7 +6,7 @@ import asyncio
 from datetime import date, datetime
 import inspect
 
-from todoist_api_python.models import Task, Project
+from todoist_api_python.models import Task, Project, Label, QuickAddResult
 
 _ = load_dotenv()
 
@@ -81,19 +81,15 @@ class TodoistManager:
         result.append("")
         result.append("class Task:")
         try:
-            # Get annotations for Task fields
             task_annotations = inspect.get_annotations(Task)
             for name, type_hint in task_annotations.items():
-                # Format the type hint for better readability
                 type_name = getattr(type_hint, '__name__', repr(type_hint))
-                # Handle Optional types specifically if needed, e.g., Optional[str] -> str | None
                 if "Optional[" in repr(type_hint):
                      inner_type = repr(type_hint).split('[')[1].split(']')[0]
-                     # Attempt to get __name__ for inner type if possible
                      try:
                          inner_type_name = eval(inner_type).__name__
                          type_name = f"{inner_type_name} | None"
-                     except: # Fallback if eval fails or inner type has no __name__
+                     except:
                          type_name = f"{inner_type} | None"
 
                 result.append(f"    {name}: {type_name}")

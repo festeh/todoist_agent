@@ -13,4 +13,5 @@ def test_tasks():
 def test_get_code_info():
     todoist_manager = TodoistManager()
     code_info = todoist_manager.get_code_info()
+    print(code_info)
     assert isinstance(code_info, str)
