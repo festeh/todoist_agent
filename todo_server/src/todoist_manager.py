@@ -3,6 +3,7 @@ from todoist_api_python.api_async import TodoistAPIAsync
 from dotenv import load_dotenv
 import os
 import asyncio
+from datetime import date, datetime
 
 from todoist_api_python.models import Task, Project
 
