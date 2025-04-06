@@ -11,19 +11,29 @@ class CodeManager:
     def execute(self, code: str) -> tuple[bool, str]:
         stdout_capture = io.StringIO()
         try:
-            execution_globals = {"client": self._client }
-            execution_locals: dict[str, object] = {"client": self._client}
+            # Make the 'client' object and 'datetime' module available to the executed code
+            execution_globals = {
+                "client": self._client,
+                "datetime": datetime
+            }
+            # Locals start empty, but can be the same dict as globals if desired
+            execution_locals: dict[str, object] = {}
 
             with contextlib.redirect_stdout(stdout_capture):
                 exec(code, execution_globals, execution_locals)
 
             captured_output = stdout_capture.getvalue().strip()
 
-            vars: list[str] = [""]
-            del execution_locals["client"]
-            for key, value in execution_locals.items():
-                vars.append(f"{key}: {value}")
-            captured_output += "\n".join(vars)
+            # If no stdout, capture the last assigned variable's value
+            if not captured_output and execution_locals:
+                 # Get the name of the last assigned variable
+                last_var_name = list(execution_locals.keys())[-1]
+                last_var_value = execution_locals[last_var_name]
+                captured_output = repr(last_var_value)
+                print(f"No stdout captured. Using value of last variable: {last_var_name}")
+            elif not captured_output:
+                 captured_output = "Code executed successfully, but produced no output or variables."
+                 print(captured_output)
 
             print(
                 f"Successfully executed code:\n{code}\nOutput:\n{captured_output.strip()}"
