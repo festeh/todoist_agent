@@ -93,13 +93,17 @@ Each line you output MUST be a valid Python code
             completion = completion[6:]
         return completion.strip()
 
-
-    def get_analyze_ai_response(task: str, code: str, output: str):
-        prompt = f"""
-        <info>
+    def get_answer_ai_response(self, task: str, code: str, output: str) -> str:
+        prompt = """<info>
         You are given users' request, Python code and result of it's execution (local variables and stdout)
-        Your goal is to briefly summarize code and it's execution result
+        Your goal is to briefly summarize code and it's execution result and provide answer to user
         </info>
+
+        <constraints>
+        In answer try to focus on details that matter for user, like was result successful or not or what was done
+        Try to fit anwer in one sentence when possible
+        Output response in Russian language
+        </constraints>
 
         <example>
         <user_request>
@@ -107,7 +111,38 @@ Each line you output MUST be a valid Python code
         </user_request>
 
         <code>
+        from datetime import datetime
 
+        def count_tasks_for_today(client):
+            tasks = client.get_tasks()
+            today = datetime.now().strftime('%Y-%m-%d')
+            count = sum(1 for task in tasks if task.due and task.due.date == today)
+            return count
+
+        print(count_tasks_for_today(client))
         </code>
+
+        <output>
+        Successfully executed code:
+        2
+        </output>
+
+        <answer>
+        You have 2 tasks today
+        </answer>
         </example>
         """.strip()
+        user_request = f"""<user_request>
+        {task}
+        </user_request>
+
+        <code>
+        {code}
+        </code>
+
+        <output>
+        {output}
+        </output>
+        """.strip()
+        completion = self._call_ai(prompt, user_request)
+        return completion
