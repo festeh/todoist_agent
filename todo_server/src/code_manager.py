@@ -11,23 +11,24 @@ class CodeManager:
     def execute(self, code: str) -> tuple[bool, str]:
         stdout_capture = io.StringIO()
         try:
-            execution_globals = {"client": self._client}
+            execution_globals = {"client": self._client }
             execution_locals: dict[str, object] = {"client": self._client}
 
             with contextlib.redirect_stdout(stdout_capture):
                 exec(code, execution_globals, execution_locals)
 
             captured_output = stdout_capture.getvalue().strip()
-            if captured_output == "":
-                print("No output captured")
-                vars: list[str] = []
-                del execution_locals["client"]
-                for key, value in execution_locals.items():
-                    vars.append(f"{key}: {value}")
-                captured_output = "\n".join(vars)
 
-            print(f"Successfully executed code:\n{code}\nOutput:\n{captured_output}")
-            return True, captured_output
+            vars: list[str] = [""]
+            del execution_locals["client"]
+            for key, value in execution_locals.items():
+                vars.append(f"{key}: {value}")
+            captured_output += "\n".join(vars)
+
+            print(
+                f"Successfully executed code:\n{code}\nOutput:\n{captured_output.strip()}"
+            )
+            return True, captured_output.strip()
 
         except Exception as e:
             captured_output = stdout_capture.getvalue()  # Capture output even on error
