@@ -80,7 +80,24 @@ class TodoistManager:
                 result.append(signature)
         result.append("")
         result.append("class Task:")
-        task = Task
-        print("\n".join(result))
+        try:
+            # Get annotations for Task fields
+            task_annotations = inspect.get_annotations(Task)
+            for name, type_hint in task_annotations.items():
+                # Format the type hint for better readability
+                type_name = getattr(type_hint, '__name__', repr(type_hint))
+                # Handle Optional types specifically if needed, e.g., Optional[str] -> str | None
+                if "Optional[" in repr(type_hint):
+                     inner_type = repr(type_hint).split('[')[1].split(']')[0]
+                     # Attempt to get __name__ for inner type if possible
+                     try:
+                         inner_type_name = eval(inner_type).__name__
+                         type_name = f"{inner_type_name} | None"
+                     except: # Fallback if eval fails or inner type has no __name__
+                         type_name = f"{inner_type} | None"
 
-        return "todoist"
+                result.append(f"    {name}: {type_name}")
+        except Exception as e:
+            print(f"Could not inspect Task fields: {e}") # Add some error logging
+
+        return "\n".join(result)
