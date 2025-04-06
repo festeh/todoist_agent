@@ -66,9 +66,8 @@ class AudioRecorderService {
     }
     const maxRetries = 20;
     const retryDelay = Duration(milliseconds: 50);
-    bool fileExists = false;
     var file = File(_recordingPath!);
-    bool fileReady = false; // Renamed for clarity
+    bool fileReady = false;
 
     for (int i = 0; i < maxRetries; i++) {
       // Check if file exists AND has content
@@ -77,7 +76,9 @@ class AudioRecorderService {
         debugPrint("File found and non-empty after ${i + 1} attempt(s).");
         break;
       }
-      debugPrint("File not found or empty, attempt ${i + 1}/$maxRetries. Waiting...");
+      debugPrint(
+        "File not found or empty, attempt ${i + 1}/$maxRetries. Waiting...",
+      );
       await Future.delayed(retryDelay);
       // Re-instantiate the File object in case its status changes
       file = File(_recordingPath!);
