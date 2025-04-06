@@ -32,7 +32,13 @@ class _AiFlowState extends State<AiFlow> {
   }
 
   Future<void> _startTimerAndRecording() async {
+    // Reset stopwatch and elapsed time before starting
+    _stopwatch.reset();
+    _elapsedTime = _formatTime(0);
     _stopwatch.start();
+
+    // Cancel any existing timer before creating a new one
+    _timer.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_stopwatch.isRunning) {
         setState(() {
@@ -183,9 +189,9 @@ class _AiFlowState extends State<AiFlow> {
                   ).textTheme.headlineMedium, // Make text larger
             ),
             const SizedBox(height: 20), // Add some space
-            // Stop button
+            // Record/Stop button
             ElevatedButton(
-              onPressed: _stopTimerAndRecording,
+              onPressed: _recording ? _stopTimerAndRecording : _startTimerAndRecording,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
@@ -196,7 +202,7 @@ class _AiFlowState extends State<AiFlow> {
                       BorderRadius.zero, // Or a small radius if preferred
                 ),
               ),
-              child: const Text('Stop'),
+              child: Text(_recording ? 'Stop' : 'Record'), // Change text based on state
             ),
             const SizedBox(height: 20), // Add some space
             _buildConnectionStatusWidget(),
