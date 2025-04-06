@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 import asyncio
 
-from todoist_api_python.models import Task
+from todoist_api_python.models import Task, Project
 
 _ = load_dotenv()
 
