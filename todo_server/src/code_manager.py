@@ -13,20 +13,21 @@ class CodeManager:
         stdout_capture = io.StringIO()
         try:
             # Provide the 'client' object and necessary modules like 'datetime'.
-            execution_globals = {"client": self._client, "datetime": datetime}
-            # Locals start empty, but can be the same dict as globals if desired
-            execution_locals: dict[str, object] = {}
+            # This dict will serve as both globals and locals for exec.
+            execution_scope = {"client": self._client, "datetime": datetime}
 
             with contextlib.redirect_stdout(stdout_capture):
-                exec(code, execution_globals, execution_locals)
+                # Use the same dict for globals and locals
+                exec(code, execution_scope, execution_scope)
 
             captured_output = stdout_capture.getvalue().strip()
 
-            vars: list[str] = [""]
-            # del execution_locals["client"]
-            for key, value in execution_locals.items():
-                vars.append(f"{key}: {value}")
-            captured_output += "\n".join(vars)
+            vars_list: list[str] = [""]
+            # Filter out the initial globals we injected to avoid cluttering the output
+            filtered_locals = {k: v for k, v in execution_scope.items() if k not in ["client", "datetime", "__builtins__"]}
+            for key, value in filtered_locals.items():
+                vars_list.append(f"{key}: {value}")
+            captured_output += "\n".join(vars_list)
 
             print(
                 f"Successfully executed code:\n{code}\nOutput:\n{captured_output.strip()}"
