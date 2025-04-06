@@ -62,23 +62,28 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Center(child: Text("My App")), // Added a title for context
       ),
       body: const Center(
-          // Placeholder for main content, can be removed or replaced later
-          child: Text("Main Content Area")),
+        // Placeholder for main content, can be removed or replaced later
+        child: Text("Main Content Area"),
+      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
           children: [
-            const Expanded(
+            Expanded(
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Enter Task here...',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20.0), // Increased radius for more rounded corners
+                    borderRadius: BorderRadius.circular(
+                      20.0,
+                    ), // Increased radius for more rounded corners
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 8), // Add spacing between text field and button
+            const SizedBox(
+              width: 8,
+            ), // Add spacing between text field and button
             FloatingActionButton(
               onPressed: _pressButton,
               tooltip: 'Start Recording', // Updated tooltip

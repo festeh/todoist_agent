@@ -32,12 +32,10 @@ class _AiFlowState extends State<AiFlow> {
   }
 
   Future<void> _startTimerAndRecording() async {
-    // Reset stopwatch and elapsed time before starting
     _stopwatch.reset();
     _elapsedTime = _formatTime(0);
     _stopwatch.start();
 
-    // Cancel any existing timer before creating a new one
     _timer.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_stopwatch.isRunning) {
