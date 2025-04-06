@@ -65,6 +65,28 @@ class TodoistManager:
 
         return "\n".join(output_lines)
 
+    def _get_class_fields_info(self, cls) -> list[str]:
+        """Inspects a class and returns a list describing its fields and types."""
+        result = [f"class {cls.__name__}:"]
+        try:
+            annotations = inspect.get_annotations(cls)
+            for name, type_hint in annotations.items():
+                type_name = getattr(type_hint, '__name__', repr(type_hint))
+                # Handle Optional types for better readability
+                if "Optional[" in repr(type_hint):
+                    inner_type_repr = repr(type_hint).split('[', 1)[1].rsplit(']', 1)[0]
+                    try:
+                        # Attempt to get the actual inner type's name
+                        inner_type = eval(inner_type_repr, globals(), locals())
+                        inner_type_name = getattr(inner_type, '__name__', inner_type_repr)
+                        type_name = f"{inner_type_name} | None"
+                    except Exception: # Fallback if eval fails or inner type has no __name__
+                        type_name = f"{inner_type_repr} | None"
+
+                result.append(f"    {name}: {type_name}")
+        except Exception as e:
+            print(f"Could not inspect {cls.__name__} fields: {e}")
+        return result
 
     def get_code_info(self):
         client = TodoistAPI
@@ -78,22 +100,10 @@ class TodoistManager:
                 source = inspect.getsource(attribute)
                 signature = source.split('\n')[0].strip(":")
                 result.append(signature)
-        result.append("")
-        result.append("class Task:")
-        try:
-            task_annotations = inspect.get_annotations(Task)
-            for name, type_hint in task_annotations.items():
-                type_name = getattr(type_hint, '__name__', repr(type_hint))
-                if "Optional[" in repr(type_hint):
-                     inner_type = repr(type_hint).split('[')[1].split(']')[0]
-                     try:
-                         inner_type_name = eval(inner_type).__name__
-                         type_name = f"{inner_type_name} | None"
-                     except:
-                         type_name = f"{inner_type} | None"
 
-                result.append(f"    {name}: {type_name}")
-        except Exception as e:
-            print(f"Could not inspect Task fields: {e}") # Add some error logging
+        # Add info for relevant model classes
+        for model_cls in [Task, Project, Label, QuickAddResult]:
+            result.append("")
+            result.extend(self._get_class_fields_info(model_cls))
 
         return "\n".join(result)
