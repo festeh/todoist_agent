@@ -2,9 +2,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'audio_recorder.dart';
 import 'websocket_manager.dart';
+import 'dart:async'; // Ensure Timer is imported if not already implicitly
 
 class AiFlow extends StatefulWidget {
-  const AiFlow({super.key});
+  final String? initialText;
+  final bool startRecordingOnInit;
+
+  const AiFlow({
+    super.key,
+    this.initialText,
+    required this.startRecordingOnInit,
+  });
 
   @override
   State<AiFlow> createState() => _AiFlowState();
@@ -23,19 +31,31 @@ class _AiFlowState extends State<AiFlow> {
   String _connectionError = '';
   String _asrMessage = ''; // State variable for ASR text
   bool _recording = false; // State variable to track recording status
+  bool _initialTextSent = false; // Track if initial text has been sent
 
   @override
   void initState() {
     super.initState();
-    _startTimerAndRecording();
+    // Conditionally start recording based on the flag passed to the widget
+    if (widget.startRecordingOnInit) {
+      _startTimerAndRecording();
+    } else {
+      // Initialize timer state even if not starting immediately
+      _timer = Timer(Duration.zero, () {}); // Dummy timer initially
+      _recording = false;
+      _elapsedTime = _formatTime(0);
+    }
     _initWebSocket();
   }
 
   Future<void> _startTimerAndRecording() async {
+    if (_recording) return; // Avoid starting if already recording
+
     _stopwatch.reset();
-    _elapsedTime = _formatTime(0);
+    _elapsedTime = _formatTime(0); // Reset timer display
     _stopwatch.start();
 
+    // Cancel previous timer if it exists and is active
     _timer.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_stopwatch.isRunning) {
@@ -47,14 +67,14 @@ class _AiFlowState extends State<AiFlow> {
 
     await _audioRecorderService.startRecording();
     setState(() {
-      _recording = true;
+      _recording = true; // Update recording state
     });
   }
 
   void _initWebSocket() {
     final websocketUrl = const String.fromEnvironment(
       'WEBSOCKET_URL',
-      defaultValue: 'ws://localhost:8000/connect',
+      defaultValue: 'ws://localhost:8000/connect', // Ensure this is correct
     );
 
     _webSocketManager = WebSocketManager(websocketUrl);
@@ -63,7 +83,16 @@ class _AiFlowState extends State<AiFlow> {
       if (!mounted) return;
       setState(() {
         debugPrint('WebSocket status changed: $status');
-        _connectionStatus = ConnectionStatus.connected;
+        _connectionStatus = status; // Update with the actual status
+
+        // If connected and initial text exists and hasn't been sent, send it
+        if (status == ConnectionStatus.connected &&
+            widget.initialText != null &&
+            !_initialTextSent) {
+          _webSocketManager.sendTranscription(widget.initialText!);
+          _initialTextSent = true; // Mark as sent
+          debugPrint('Sent initial transcription: ${widget.initialText}');
+        }
       });
     });
 
@@ -87,22 +116,30 @@ class _AiFlowState extends State<AiFlow> {
   }
 
   Future<void> _stopTimerAndRecording() async {
+    if (!_recording) return; // Don't stop if not recording
+
     _timer.cancel();
     _stopwatch.stop();
     final recordingPath = await _audioRecorderService.stopRecording();
 
     if (recordingPath == null) {
       debugPrint("stopRecording returned null, cannot proceed.");
+      setState(() {
+        _recording = false; // Still update state even if path is null
+      });
       return;
     }
 
+    // Attempt to get bytes and send even if path exists
     final recorded = await _audioRecorderService.getRecordedBytes();
     if (recorded != null) {
       _webSocketManager.sendAudio(recorded);
+    } else {
+      debugPrint("Failed to get recorded bytes after stopping.");
     }
 
     setState(() {
-      _recording = false;
+      _recording = false; // Update recording state
     });
   }
 
@@ -178,17 +215,19 @@ class _AiFlowState extends State<AiFlow> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            // Display the timer
-            Text(
-              _elapsedTime,
-              style:
-                  Theme.of(
-                    context,
-                  ).textTheme.headlineMedium, // Make text larger
-            ),
-            const SizedBox(height: 20), // Add some space
+            // Display the timer only when recording
+            if (_recording)
+              Text(
+                _elapsedTime,
+                style:
+                    Theme.of(
+                      context,
+                    ).textTheme.headlineMedium, // Make text larger
+              ),
+            if (_recording) const SizedBox(height: 20), // Add space only if timer is shown
             // Record/Stop button
             ElevatedButton(
+              // Action depends on whether currently recording
               onPressed: _recording ? _stopTimerAndRecording : _startTimerAndRecording,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(

@@ -45,14 +45,37 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Method to update the status when the button is pressed
-  void _pressButton() {
-    setState(() {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const AiFlow()),
-      );
-    });
+  final TextEditingController _textController = TextEditingController();
+
+  // Navigate to AiFlow, starting recording
+  void _navigateToAiFlowRecording() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AiFlow(startRecordingOnInit: true),
+      ),
+    );
+  }
+
+  // Navigate to AiFlow with initial text, not starting recording
+  void _navigateToAiFlowWithText(String text) {
+    if (text.trim().isEmpty) return; // Don't navigate with empty text
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AiFlow(
+          initialText: text,
+          startRecordingOnInit: false,
+        ),
+      ),
+    );
+    _textController.clear(); // Clear text field after submission
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -71,11 +94,13 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             Expanded(
               child: TextField(
+                controller: _textController,
+                onSubmitted: _navigateToAiFlowWithText, // Handle submission
                 decoration: InputDecoration(
-                  hintText: 'Enter Task here...',
+                  hintText: 'Enter Task here or press Mic...', // Updated hint
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(
-                      20.0,
+                      20.0, // Increased radius for more rounded corners
                     ), // Increased radius for more rounded corners
                   ),
                 ),
@@ -85,8 +110,8 @@ class _MyHomePageState extends State<MyHomePage> {
               width: 8,
             ), // Add spacing between text field and button
             FloatingActionButton(
-              onPressed: _pressButton,
-              tooltip: 'Start Recording', // Updated tooltip
+              onPressed: _navigateToAiFlowRecording, // Use specific method for mic
+              tooltip: 'Start Recording',
               child: const Icon(Icons.mic),
             ),
           ],
@@ -100,7 +125,8 @@ class _MyHomePageState extends State<MyHomePage> {
       };
 
       final actions = <Type, Action<Intent>>{
-        PressButtonIntent: PressButtonAction(_pressButton),
+        // Ensure shortcut triggers the recording flow
+        PressButtonIntent: PressButtonAction(_navigateToAiFlowRecording),
       };
 
       return Actions(
