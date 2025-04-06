@@ -11,11 +11,14 @@ from todoist_api_python.models import Task, Project, Label, QuickAddResult
 _ = load_dotenv()
 
 class TodoistManager:
-    def __init__(self):
+    def __init__(self, use_async: bool = True):
         todoist_api_token = os.getenv("TODOIST_API_KEY")
         if not todoist_api_token:
             raise ValueError("TODOIST_API_KEY environment variable not set.")
-        self._todoist: TodoistAPIAsync = TodoistAPIAsync(todoist_api_token)
+        if use_async:
+            self._todoist: TodoistAPIAsync = TodoistAPIAsync(todoist_api_token)
+        else:
+            self._todoist_sync: TodoistAPI = TodoistAPI(todoist_api_token)
 
     async def get_tasks(self) -> str:
         tasks_coro = self._todoist.get_tasks()

@@ -1,4 +1,4 @@
-
+from src.todoist_manager import TodoistManager
 
 
 class CodeManager:
@@ -6,4 +6,4 @@ class CodeManager:
         pass
 
     def execute(self, code: str):
-        pass
+        client = TodoistManager(use_async=False)._todoist_sync
