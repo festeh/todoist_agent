@@ -1,4 +1,3 @@
-from typing import List, Dict
 from todoist_api_python.api_async import TodoistAPIAsync
 from dotenv import load_dotenv
 import os
@@ -21,14 +20,14 @@ class TodoistManager:
         projects_coro = self._todoist.get_projects()
         results = await asyncio.gather(tasks_coro, projects_coro)
 
-        tasks: List[Task] = results[0]
-        projects: List[Project] = results[1]
+        tasks: list[Task] = results[0]
+        projects: list[Project] = results[1]
 
-        project_map: Dict[str, str] = {
+        project_map: dict[str, str] = {
             project.id: project.name for project in projects
         }
 
-        tasks_by_project: Dict[str, List[str]] = {}
+        tasks_by_project: dict[str, list[str]] = {}
         today = date.today()
 
         for task in tasks:
@@ -45,7 +44,7 @@ class TodoistManager:
                     else:
                         due_str = f" [{due_date.strftime('%d %b %Y')}]"
                 except ValueError:
-                    # Handle cases where date format might be different or invalid
+                    print(f"Failed to parse due date: {task.due.date}")
                     due_str = f" [{task.due.string}]" # Fallback to original string
 
             task_line = f" - {task.content}{due_str}"
