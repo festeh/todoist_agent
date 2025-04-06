@@ -12,9 +12,8 @@ class CodeManager:
     def execute(self, code: str) -> tuple[bool, str]:
         stdout_capture = io.StringIO()
         try:
-            # Provide only the necessary 'client' object.
-            # Let the executed code handle its own imports like 'datetime'.
-            execution_globals = {"client": self._client}
+            # Provide the 'client' object and necessary modules like 'datetime'.
+            execution_globals = {"client": self._client, "datetime": datetime}
             # Locals start empty, but can be the same dict as globals if desired
             execution_locals: dict[str, object] = {}
 
