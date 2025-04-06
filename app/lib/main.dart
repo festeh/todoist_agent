@@ -59,18 +59,31 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     final scaffold = Scaffold(
       appBar: AppBar(
-        title: const Center(),
+        title: const Center(child: Text("My App")), // Added a title for context
       ),
-      // Use FloatingActionButton for the bottom-right button
-      floatingActionButton: FloatingActionButton(
-        onPressed: _pressButton,
-        tooltip: 'Press Me',
-        child: const Icon(Icons.mic),
-      ),
-      // Ensure the button is positioned at the bottom right
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: const Center(
-        // Placeholder for main content, can be removed or replaced later
+          // Placeholder for main content, can be removed or replaced later
+          child: Text("Main Content Area")),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            const Expanded(
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Enter text here...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8), // Add spacing between text field and button
+            FloatingActionButton(
+              onPressed: _pressButton,
+              tooltip: 'Start Recording', // Updated tooltip
+              child: const Icon(Icons.mic),
+            ),
+          ],
+        ),
       ),
     );
     final isLinux = Theme.of(context).platform == TargetPlatform.linux;
