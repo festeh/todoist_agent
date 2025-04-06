@@ -29,7 +29,7 @@ class _AiFlowState extends State<AiFlow> {
 
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
   String _connectionError = '';
-  String _asrMessage = ''; // State variable for ASR text
+  final List<String> _receivedMessages = []; // List to store ASR messages
   bool _recording = false; // State variable to track recording status
   bool _initialTextSent = false; // Track if initial text has been sent
 
@@ -97,8 +97,8 @@ class _AiFlowState extends State<AiFlow> {
     _webSocketManager.onAsrMessage.listen((message) {
       if (!mounted) return;
       setState(() {
-        _asrMessage = message;
-        debugPrint('UI updated with ASR: $message');
+        _receivedMessages.add(message); // Add new message to the list
+        debugPrint('UI received ASR message: $message');
       });
     });
 
