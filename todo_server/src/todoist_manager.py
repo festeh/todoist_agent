@@ -65,7 +65,7 @@ class TodoistManager:
 
         return "\n".join(output_lines)
 
-    def _get_class_fields_info(self, cls) -> list[str]:
+    def _get_class_fields_info(self, cls: type) -> list[str]:
         """Inspects a class and returns a list describing its fields and types."""
         result = [f"class {cls.__name__}:"]
         try:
@@ -76,7 +76,6 @@ class TodoistManager:
                 if "Optional[" in repr(type_hint):
                     inner_type_repr = repr(type_hint).split('[', 1)[1].rsplit(']', 1)[0]
                     try:
-                        # Attempt to get the actual inner type's name
                         inner_type = eval(inner_type_repr, globals(), locals())
                         inner_type_name = getattr(inner_type, '__name__', inner_type_repr)
                         type_name = f"{inner_type_name} | None"
