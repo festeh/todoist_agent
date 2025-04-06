@@ -22,6 +22,7 @@ class _AiFlowState extends State<AiFlow> {
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
   String _connectionError = '';
   String _asrMessage = ''; // State variable for ASR text
+  bool _recording = false; // State variable to track recording status
 
   @override
   void initState() {
@@ -43,6 +44,9 @@ class _AiFlowState extends State<AiFlow> {
 
     // Start recording
     await _audioRecorderService.startRecording();
+    setState(() {
+      _recording = true; // Update recording state
+    });
   }
 
   void _initWebSocket() {
@@ -94,6 +98,10 @@ class _AiFlowState extends State<AiFlow> {
     if (recorded != null) {
       _webSocketManager.sendAudio(recorded);
     }
+
+    setState(() {
+      _recording = false; // Update recording state
+    });
   }
 
   @override
