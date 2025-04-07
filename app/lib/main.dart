@@ -63,10 +63,8 @@ class _MyHomePageState extends State<MyHomePage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AiFlow(
-          initialText: text,
-          startRecordingOnInit: false,
-        ),
+        builder:
+            (context) => AiFlow(initialText: text, startRecordingOnInit: false),
       ),
     );
     _textController.clear(); // Clear text field after submission
@@ -110,7 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
               width: 8,
             ), // Add spacing between text field and button
             FloatingActionButton(
-              onPressed: _navigateToAiFlowRecording, // Use specific method for mic
+              onPressed:
+                  _navigateToAiFlowRecording, // Use specific method for mic
               tooltip: 'Start Recording',
               child: const Icon(Icons.mic),
             ),
@@ -121,7 +120,8 @@ class _MyHomePageState extends State<MyHomePage> {
     final isLinux = Theme.of(context).platform == TargetPlatform.linux;
     if (isLinux) {
       final shortcuts = <LogicalKeySet, Intent>{
-        LogicalKeySet(LogicalKeyboardKey.keyS): const PressButtonIntent(),
+        LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyS):
+            const PressButtonIntent(),
       };
 
       final actions = <Type, Action<Intent>>{
