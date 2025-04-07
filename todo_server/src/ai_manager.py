@@ -37,7 +37,7 @@ class AiManager:
             try:
                 print(f"Trying model: {model}")
                 response = self.client.chat.completions.create(
-                    model=self.model,
+                    model=model,
                     temperature=self.temperature,
                     stream=False,
                     messages=[
