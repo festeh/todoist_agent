@@ -16,7 +16,7 @@ class AiManager:
             api_key=api_key,
         )
 
-        self.model: str = "meta-llama/llama-4-maverick:free"
+        self.model: str = "meta-llama/llama-4-maverick"
         # self.model = "qwen/qwen-2.5-coder-32b-instruct"
         # self.model = "anthropic/claude-3.7-sonnet"
         self.fallbacks: list[str] = [
@@ -36,6 +36,9 @@ class AiManager:
         for model in models:
             try:
                 print(f"Trying model: {model}")
+                kwargs: dict[str, object] = dict()
+                if model == "meta-llama/llama-4-maverick":
+                    kwargs["extra_body"] = {"provider": {"order": ["Fireworks"]}}
                 response = self.client.chat.completions.create(
                     model=model,
                     temperature=self.temperature,
@@ -45,6 +48,7 @@ class AiManager:
                         {"role": "user", "content": user_request},
                     ],
                     timeout=10,
+                    **kwargs,
                 )
                 completion = response.choices[0].message.content
                 assert isinstance(completion, str)
@@ -97,7 +101,9 @@ Always print() the answer of interest
 </user_request>
         """.strip()
         completion = self._call_ai(
-            prompt, user_request, model_override="anthropic/claude-3.7-sonnet"
+            prompt,
+            user_request,
+            # model_override="anthropic/claude-3.7-sonnet"
         )
         if completion.startswith("```") and completion.endswith("```"):
             completion = completion[3:-3]
