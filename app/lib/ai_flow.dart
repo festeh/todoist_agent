@@ -255,11 +255,22 @@ class _AiFlowState extends State<AiFlow> {
               child: ListView.builder(
                 itemCount: _receivedMessages.length,
                 itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
+                  // Wrap the Text widget with a Container for background and padding
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
                       horizontal: 16.0,
-                      vertical:
-                          10.0, // Add some vertical spacing between messages
+                      vertical: 4.0, // Vertical spacing between containers
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 8.0, // Padding inside the container
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surfaceVariant, // Use a subtle background color from the theme
+                      borderRadius: BorderRadius.circular(
+                          8.0), // Optional: Add rounded corners
                     ),
                     child: Text(
                       _receivedMessages[index],
