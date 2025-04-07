@@ -16,8 +16,9 @@ class AiManager:
             api_key=api_key,
         )
 
-        # self.model: str = "meta-llama/llama-4-maverick:free"
-        self.model = "qwen/qwen-2.5-coder-32b-instruct"
+        self.model: str = "meta-llama/llama-4-maverick:free"
+        # self.model = "qwen/qwen-2.5-coder-32b-instruct"
+        # self.model = "anthropic/claude-3.7-sonnet"
         self.fallbacks: list[str] = [
             "meta-llama/llama-4-maverick",
             "anthropic/claude-3.7-sonnet",
@@ -26,8 +27,12 @@ class AiManager:
         ]
         self.temperature: float = 0.1
 
-    def _call_ai(self, system_prompt: str, user_request: str) -> str:
+    def _call_ai(
+        self, system_prompt: str, user_request: str, model_override: str | None = None
+    ) -> str:
         models = [self.model] + self.fallbacks
+        if model_override is not None:
+            models[0] = model_override
         for model in models:
             try:
                 print(f"Trying model: {model}")
@@ -90,7 +95,9 @@ Each line you output MUST be a valid Python code
 {user_request}
 </user_request>
         """.strip()
-        completion = self._call_ai(prompt, user_request)
+        completion = self._call_ai(
+            prompt, user_request, model_override="anthropic/claude-3.7-sonnet"
+        )
         if completion.startswith("```") and completion.endswith("```"):
             completion = completion[3:-3]
         if completion.startswith("python"):
