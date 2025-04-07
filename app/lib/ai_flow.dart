@@ -250,14 +250,16 @@ class _AiFlowState extends State<AiFlow> {
             _buildConnectionStatusWidget(),
             const SizedBox(height: 20), // Add space before ASR messages
             // Display the list of ASR messages
-            Expanded( // Use Expanded to take available space
+            Expanded(
+              // Use Expanded to take available space
               child: ListView.builder(
                 itemCount: _receivedMessages.length,
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
-                      vertical: 4.0, // Add some vertical spacing between messages
+                      vertical:
+                          10.0, // Add some vertical spacing between messages
                     ),
                     child: Text(
                       _receivedMessages[index],
