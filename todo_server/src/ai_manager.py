@@ -16,7 +16,8 @@ class AiManager:
             api_key=api_key,
         )
 
-        self.model: str = "meta-llama/llama-4-maverick:free"
+        # self.model: str = "meta-llama/llama-4-maverick:free"
+        self.model = "qwen/qwen-2.5-coder-32b-instruct"
         self.fallbacks: list[str] = [
             "meta-llama/llama-4-maverick",
             "anthropic/claude-3.7-sonnet",
@@ -38,6 +39,7 @@ class AiManager:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_request},
                     ],
+                    timeout=10,
                 )
                 completion = response.choices[0].message.content
                 assert isinstance(completion, str)
@@ -75,6 +77,8 @@ Do not care about commenting code
 You should use client:TodoistAPI to work with Todoist API, that is already presented
 You can also use standard Python libraries
 Try to minimize code length
+Do NOT define new functions
+DO NOT use if __name__ == "__main__"
 Each line you output MUST be a valid Python code
 </constraints>
     """
@@ -91,6 +95,7 @@ Each line you output MUST be a valid Python code
             completion = completion[3:-3]
         if completion.startswith("python"):
             completion = completion[6:]
+        completion = completion.replace("<|python_end|>", "")
         return completion.strip()
 
     def get_answer_ai_response(self, task: str, code: str, output: str) -> str:

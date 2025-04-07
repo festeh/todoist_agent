@@ -6,7 +6,7 @@ import asyncio
 from datetime import date, datetime
 import inspect
 
-from todoist_api_python.models import Task, Project, Label, QuickAddResult
+from todoist_api_python.models import Due, Task, Project, Label, QuickAddResult
 
 _ = load_dotenv()
 
@@ -104,7 +104,7 @@ class TodoistManager:
                 result.append(signature)
 
         # Add info for relevant model classes
-        for model_cls in [Task, Project, Label, QuickAddResult]:
+        for model_cls in [Task, Project, Label, QuickAddResult, Due]:
             result.append("")
             result.extend(self._get_class_fields_info(model_cls))
 

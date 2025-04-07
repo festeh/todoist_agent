@@ -16,8 +16,7 @@ class WebSocketManager {
   // Stream controllers to broadcast changes
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _errorController = StreamController<String>.broadcast();
-  final _asrMessageController =
-      StreamController<String>.broadcast(); // For ASR messages
+  final _messageController = StreamController<String>.broadcast();
 
   WebSocketManager(this._url);
 
@@ -28,8 +27,7 @@ class WebSocketManager {
   // Stream getters
   Stream<ConnectionStatus> get onStatusChange => _statusController.stream;
   Stream<String> get onError => _errorController.stream;
-  Stream<String> get onAsrMessage =>
-      _asrMessageController.stream; // Public stream for ASR
+  Stream<String> get onMessage => _messageController.stream;
 
   Future<void> connect() async {
     if (_status == ConnectionStatus.connected ||
@@ -46,13 +44,16 @@ class WebSocketManager {
         (message) {
           debugPrint('Raw WebSocket message: $message');
           final decoded = jsonDecode(message);
-          if (decoded['type'] == 'asr' && decoded.containsKey('message')) {
-            final asrText = decoded['message'] as String;
-            _asrMessageController.add(asrText);
-            debugPrint('Received ASR message: $asrText');
-          } else {
-            debugPrint('Received other JSON message: $decoded');
+          if (decoded.containsKey('message')) {
+            _messageController.add(decoded['message']);
           }
+          // if (decoded['type'] == 'asr' && decoded.containsKey('message')) {
+          //   final asrText = decoded['message'] as String;
+          //   _asrMessageController.add(asrText);
+          //   debugPrint('Received ASR message: $asrText');
+          // } else {
+          //   debugPrint('Received other JSON message: $decoded');
+          // }
         },
         onDone: () {
           _updateStatus(ConnectionStatus.disconnected);
@@ -138,9 +139,11 @@ class WebSocketManager {
     }
 
     try {
-      _channel?.sink.add(jsonEncode({'type': 'transcription', 'message': text}));
+      _channel?.sink.add(
+        jsonEncode({'type': 'transcription', 'message': text}),
+      );
       debugPrint('Sent transcription: $text');
-      return true; 
+      return true;
     } catch (e) {
       final errorMessage = 'Failed during text send process: $e';
       _updateError(errorMessage);
@@ -163,6 +166,6 @@ class WebSocketManager {
     await disconnect();
     _statusController.close();
     _errorController.close();
-    _asrMessageController.close();
+    _messageController.close();
   }
 }

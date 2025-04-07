@@ -94,7 +94,7 @@ class _AiFlowState extends State<AiFlow> {
       });
     });
 
-    _webSocketManager.onAsrMessage.listen((message) {
+    _webSocketManager.onMessage.listen((message) {
       if (!mounted) return;
       setState(() {
         _receivedMessages.add(message); // Add new message to the list
