@@ -55,8 +55,6 @@ class _AiFlowState extends State<AiFlow> {
     _elapsedTime = _formatTime(0); // Reset timer display
     _stopwatch.start();
 
-    // Cancel previous timer if it exists and is active
-    _timer.cancel();
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_stopwatch.isRunning) {
         setState(() {
@@ -266,11 +264,13 @@ class _AiFlowState extends State<AiFlow> {
                       vertical: 8.0, // Padding inside the container
                     ),
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surfaceVariant, // Use a subtle background color from the theme
+                      color:
+                          Theme.of(context)
+                              .colorScheme
+                              .surfaceVariant, // Use a subtle background color from the theme
                       borderRadius: BorderRadius.circular(
-                          8.0), // Optional: Add rounded corners
+                        8.0,
+                      ), // Optional: Add rounded corners
                     ),
                     child: Text(
                       _receivedMessages[index],

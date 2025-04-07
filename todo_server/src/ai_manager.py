@@ -85,6 +85,7 @@ Try to minimize code length
 Do NOT define new functions
 DO NOT use if __name__ == "__main__"
 Each line you output MUST be a valid Python code
+Always print() the answer of interest
 </constraints>
     """
         return prompt
