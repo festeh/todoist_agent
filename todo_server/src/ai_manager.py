@@ -36,9 +36,9 @@ class AiManager:
         for model in models:
             try:
                 print(f"Trying model: {model}")
-                kwargs: dict[str, object] = dict()
+                extra_body = None
                 if model == "meta-llama/llama-4-maverick":
-                    kwargs["extra_body"] = {"provider": {"order": ["Fireworks"]}}
+                    extra_body = {"provider": {"order": ["Fireworks"]}}
                 response = self.client.chat.completions.create(
                     model=model,
                     temperature=self.temperature,
@@ -48,7 +48,7 @@ class AiManager:
                         {"role": "user", "content": user_request},
                     ],
                     timeout=10,
-                    **kwargs,
+                    extra_body=extra_body,
                 )
                 completion = response.choices[0].message.content
                 assert isinstance(completion, str)
