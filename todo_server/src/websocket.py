@@ -38,6 +38,7 @@ class WebsocketManager:
         self.transcription = None
         self.todoist_coro = None
         self.audio_buffer = bytearray()
+        self.history = []
 
     async def _send_message(self, message_type: MessageType, message: str):
         await self.ws.send_text(json.dumps({"type": message_type, "message": message}))
@@ -50,11 +51,6 @@ class WebsocketManager:
         print(
             f"Received audio chunk: {len(chunk)} bytes. Total: {len(self.audio_buffer)} bytes."
         )
-
-    async def init_flow(self):
-        self.reset()
-        self.fetch_tasks()
-        print("Started receiving audio.")
 
     async def transcribe(self):
         try:
@@ -100,7 +96,6 @@ class WebsocketManager:
 
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    receiving_audio = False
     manager = WebsocketManager(websocket)
     try:
         while True:
@@ -108,24 +103,23 @@ async def websocket_endpoint(websocket: WebSocket):
             if message.get("text", False):
                 data: str = message["text"]
                 print(f"Received text message: {data}")
+                if data == "INIT":
+                    manager.reset()
                 if data == "START_AUDIO":
-                    await manager.init_flow()
-                    receiving_audio = True
-                    await manager._send_message(MessageType.INFO, "Audio transmission started.")
+                    manager.fetch_tasks()
+                    print("Started receiving audio.")
+                    await manager._send_message(
+                        MessageType.INFO, "Audio transmission started."
+                    )
                 elif data == "END_AUDIO":
                     await manager.exec_flow()
                 elif data == "ping":
-                    if receiving_audio:
-                        await websocket.send_text(
-                            "Error: Cannot process 'ping' while receiving audio."
-                        )
-                    else:
-                        await websocket.send_text("pong")
+                    await websocket.send_text("pong")
                 else:
                     try:
                         json_data: dict[str, str] = json.loads(data)
                         if json_data.get("type") == MessageType.TRANSCRIPTION:
-                            await manager.init_flow()
+                            manager.fetch_tasks()
                             await manager.exec_flow(json_data["message"])
                     except json.JSONDecodeError:
                         await websocket.send_text("Error: Invalid JSON data.")
