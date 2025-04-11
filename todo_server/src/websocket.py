@@ -5,9 +5,10 @@ including text messages and chunked audio data transfer.
 
 import json
 from typing import final
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect, status
 from enum import StrEnum
 
+from src.main import TODOIST_AGENT_ACCESS_KEY  # Import the access key
 from src.ai_manager import AiManager
 from src.code_manager import CodeManager
 
@@ -95,7 +96,16 @@ class WebsocketManager:
 
 
 async def websocket_endpoint(websocket: WebSocket):
+    # --- Authentication Check ---
+    auth_header = websocket.headers.get("X-Agent-Access-Key")
+    if auth_header != TODOIST_AGENT_ACCESS_KEY:
+        print("WebSocket connection rejected: Invalid or missing X-Agent-Access-Key header.")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+    # --- End Authentication Check ---
+
     await websocket.accept()
+    print(f"Client {websocket.client} connected with valid access key.")
     manager = WebsocketManager(websocket)
     try:
         while True:
