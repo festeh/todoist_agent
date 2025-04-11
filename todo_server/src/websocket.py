@@ -96,13 +96,11 @@ class WebsocketManager:
 
 
 async def websocket_endpoint(websocket: WebSocket):
-    # --- Authentication Check ---
     auth_header = websocket.headers.get("X-Agent-Access-Key")
     if auth_header != TODOIST_AGENT_ACCESS_KEY:
         print("WebSocket connection rejected: Invalid or missing X-Agent-Access-Key header.")
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
-    # --- End Authentication Check ---
 
     await websocket.accept()
     print(f"Client {websocket.client} connected with valid access key.")
