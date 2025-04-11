@@ -10,26 +10,21 @@ jobs:
       
       - name: Create deployment script
         run: |
-          # Use EOL without quotes to allow variable expansion for secrets
           cat > deploy.sh << EOL
           #!/bin/bash
           set -e
 
           export PATH="\$PATH:\$HOME/.local/bin" # Escape $ for server execution
 
-          # Cleanup
           rm -rf ~/todo_server
 
-          # Copy files
           cp -r todo_server ~/
 
-          # Install dependencies in a virtual environment
           cd ~/todo_server
           uv venv --seed
           source .venv/bin/activate
-          pip install -e . # Assumes python-dotenv is a dependency
+          pip install -e . 
 
-          # Create .env file from GitHub secrets
           echo "Creating .env file..."
           cat > .env << EOF_ENV
           OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
@@ -72,7 +67,7 @@ jobs:
           EOL
           chmod +x deploy.sh
 
-      - name: Deploy to VPS
+      - name: Clean up VPS
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
