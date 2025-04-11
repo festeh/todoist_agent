@@ -10,47 +10,68 @@ jobs:
       
       - name: Create deployment script
         run: |
-          cat > deploy.sh << 'EOL'
+          # Use EOL without quotes to allow variable expansion for secrets
+          cat > deploy.sh << EOL
           #!/bin/bash
           set -e
 
-          export PATH="$PATH:$HOME/.local/bin"
-          
+          export PATH="\$PATH:\$HOME/.local/bin" # Escape $ for server execution
+
           # Cleanup
           rm -rf ~/todo_server
-          
+
           # Copy files
           cp -r todo_server ~/
-          
+
           # Install dependencies in a virtual environment
           cd ~/todo_server
           uv venv --seed
           source .venv/bin/activate
-          pip install -e .
-          
+          pip install -e . # Assumes python-dotenv is a dependency
+
+          # Create .env file from GitHub secrets
+          echo "Creating .env file..."
+          cat > .env << EOF_ENV
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+          TODOIST_API_KEY=${{ secrets.TODOIST_API_KEY }}
+          ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY }}
+          TODOIST_AGENT_ACCESS_KEY=${{ secrets.TODOIST_AGENT_ACCESS_KEY }}
+          EOF_ENV
+          echo ".env file created."
+
           # Create systemd service file
-          cat > todo_server.service << 'EOF'
+          echo "Creating systemd service file..."
+          cat > todo_server.service << 'EOF_SERVICE' # Use quotes to prevent expansion here
           [Unit]
           Description=Todoist AI Server
           After=network.target
-          
+
           [Service]
-          ExecStart=/home/root/todo_server/.venv/bin/uvicorn todo_server.src.main:app  --port 9090
-          WorkingDirectory=/home/root
+          # Run uvicorn from the todo_server directory where .env is located
+          ExecStart=/home/root/todo_server/.venv/bin/uvicorn todo_server.src.main:app --port 9090
+          WorkingDirectory=/home/root/todo_server # Set working directory for .env loading
           Restart=always
-          
+          User=root # Or the user running the service
+
+          # Optional: If environment variables need to be explicitly passed (dotenv usually handles this)
+          # EnvironmentFile=/home/root/todo_server/.env
+
           [Install]
           WantedBy=multi-user.target
-          EOF
-          
+          EOF_SERVICE
+          echo "Systemd service file created."
+
           # Install and start service
+          echo "Installing and starting systemd service..."
           sudo mv todo_server.service /etc/systemd/system/
           sudo systemctl daemon-reload
           sudo systemctl enable todo_server.service
           sudo systemctl restart todo_server.service
+          echo "Service started."
           EOL
           chmod +x deploy.sh
-          
+
       - name: Deploy to VPS
         uses: appleboy/ssh-action@master
         with:
