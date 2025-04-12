@@ -8,21 +8,24 @@ void main() async {
 
   bool isWearOS = false;
   try {
-    // Attempt to detect the shape of the Wear OS device
-    final shape = await WearShape.detect();
-    // If shape is non-null, it's likely a Wear OS device
-    if (shape != null) {
+    // Attempt to get the shape from the Wear OS device
+    // Wear.instance.getShape() returns a Future<String> ('round' or 'square')
+    // An empty string or error likely means it's not Wear OS.
+    final shapeResult = await Wear.instance.getShape();
+
+    // Check if the result indicates a known Wear OS shape
+    if (shapeResult == 'round' || shapeResult == 'square') {
       isWearOS = true;
-      debugPrint(
-          "Detected Wear OS device: ${shape == WearShape.round ? 'Round' : 'Square'}");
+      debugPrint("Detected Wear OS device: $shapeResult");
     } else {
-      debugPrint("Device is not Wear OS (shape detection returned null).");
+      // Handle cases where getShape might return an empty string or unexpected value
+      debugPrint(
+          "Device is likely not Wear OS (getShape returned '$shapeResult').");
     }
   } catch (e) {
-    // Catch potential errors during detection (e.g., platform issues)
-    debugPrint("Could not detect WearShape, assuming not Wear OS: $e");
-    // Depending on the app's requirements, you might want to default isWearOS
-    // to false or handle the error differently.
+    // Catch potential errors during the platform channel call
+    debugPrint("Could not get Wear shape, assuming not Wear OS: $e");
+    // Default isWearOS remains false
   }
 
   // Conditionally run the appropriate root widget
