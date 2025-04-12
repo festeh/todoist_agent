@@ -2,6 +2,7 @@
 WebSocket endpoint logic for handling real-time communication,
 including text messages and chunked audio data transfer.
 """
+
 import json
 import os
 from typing import final
@@ -47,6 +48,7 @@ class WebsocketManager:
         self.history = []
 
     async def _send_message(self, message_type: MessageType, message: str):
+        print(f"Sending {message_type} message: {message}")
         await self.ws.send_text(json.dumps({"type": message_type, "message": message}))
 
     def fetch_tasks(self):
@@ -94,7 +96,6 @@ class WebsocketManager:
         )
         code_coro = self._send_message(MessageType.CODE, code)
         exec_result = self.code_manager.execute(code)
-        print("Execution result:", exec_result)
         answer = self.ai_manager.get_answer_ai_response(tasks, code, exec_result)
         await code_coro
         await self._send_message(MessageType.ANSWER, answer)

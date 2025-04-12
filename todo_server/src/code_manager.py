@@ -16,19 +16,7 @@ class CodeManager:
 
             with contextlib.redirect_stdout(stdout_capture):
                 exec(code, execution_scope, execution_scope)
-
             captured_output = stdout_capture.getvalue().strip()
-
-            # vars_list: list[str] = [""]
-            # filtered_locals = {
-            #     k: v
-            #     for k, v in execution_scope.items()
-            #     if k not in ["client", "datetime", "__builtins__"]
-            # }
-            # for key, value in filtered_locals.items():
-            #     vars_list.append(f"{key}: {value}")
-            # captured_output += "\n".join(vars_list)
-
             captured_output = f"Successfully executed code:\n {captured_output}".strip()
             print(captured_output)
             return captured_output

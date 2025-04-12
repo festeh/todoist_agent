@@ -52,6 +52,7 @@ class AiManager:
                 )
                 completion = response.choices[0].message.content
                 assert isinstance(completion, str)
+                print("Got completion", completion)
                 return completion
             except Exception as e:
                 print(f"Error calling AI: {e}")

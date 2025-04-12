@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'; // Use dart:io for WebSocket
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart'; // Use foundation for debugPrint
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
@@ -50,7 +49,6 @@ class WebSocketManager {
     final Map<String, dynamic> headers = {'X-Agent-Access-Key': agentAccessKey};
 
     try {
-      // Use WebSocket.connect from dart:io
       _channel = await WebSocket.connect(_url, headers: headers);
 
       _updateStatus(ConnectionStatus.connected);
@@ -59,7 +57,6 @@ class WebSocketManager {
       // Listen for messages, errors, and closure
       _channelSubscription = _channel!.listen(
         (message) {
-          // Handle incoming messages (String or List<int>)
           if (message is String) {
             debugPrint('Raw WebSocket message (String): $message');
             try {
@@ -71,11 +68,10 @@ class WebSocketManager {
               debugPrint("Failed to decode JSON message: $e");
               // Handle non-JSON string messages if necessary
             }
-          } else if (message is List<int>) {
-            // Handle binary messages if needed
-            debugPrint('Received binary message of length: ${message.length}');
           } else {
-            debugPrint('Received unexpected message type: ${message.runtimeType}');
+            debugPrint(
+              'Received unexpected message type: ${message.runtimeType}',
+            );
           }
           final decoded = jsonDecode(message);
           if (decoded.containsKey('message')) {
@@ -183,7 +179,8 @@ class WebSocketManager {
     }
 
     try {
-      _channel?.add( // Use add()
+      _channel?.add(
+        // Use add()
         jsonEncode({'type': 'transcription', 'message': text}),
       );
       debugPrint('Sent transcription: $text');
