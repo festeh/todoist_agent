@@ -1,10 +1,8 @@
-import 'dart:io' show Platform; // Import Platform
-import 'package:flutter/foundation.dart'
-    show kIsWeb; // Import kIsWeb for web check
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Import PlatformException
-import 'package:wear/wear.dart'; // Import wear package
-import 'standard_app.dart'; // Import the standard app UI
+import 'package:flutter/services.dart';
+import 'package:wear/wear.dart';
+import 'standard_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,11 +36,8 @@ class WearOsPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Using MaterialApp to provide basic structure and theme handling.
-    // You might want to customize the theme specifically for Wear OS later.
     return const MaterialApp(
       home: Scaffold(
-        // Using a simple Scaffold for structure
         body: Center(
           child: Text('Wear OS App Placeholder'), // Placeholder text
         ),
