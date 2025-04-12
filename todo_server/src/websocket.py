@@ -2,18 +2,23 @@
 WebSocket endpoint logic for handling real-time communication,
 including text messages and chunked audio data transfer.
 """
-
 import json
+import os
 from typing import final
 from fastapi import WebSocket, WebSocketDisconnect, status
 from enum import StrEnum
+from dotenv import load_dotenv
 
-from src.main import TODOIST_AGENT_ACCESS_KEY  # Import the access key
 from src.ai_manager import AiManager
 from src.code_manager import CodeManager
+from src.groq_manager import GroqManager
+from src.todoist_manager import TodoistManager
 
-from .groq_manager import GroqManager
-from .todoist_manager import TodoistManager
+_ = load_dotenv()
+
+TODOIST_AGENT_ACCESS_KEY = os.getenv("TODOIST_AGENT_ACCESS_KEY")
+if not TODOIST_AGENT_ACCESS_KEY:
+    raise ValueError("TODOIST_AGENT_ACCESS_KEY environment variable not set.")
 
 
 class MessageType(StrEnum):
@@ -98,7 +103,9 @@ class WebsocketManager:
 async def websocket_endpoint(websocket: WebSocket):
     auth_header = websocket.headers.get("X-Agent-Access-Key")
     if auth_header != TODOIST_AGENT_ACCESS_KEY:
-        print("WebSocket connection rejected: Invalid or missing X-Agent-Access-Key header.")
+        print(
+            "WebSocket connection rejected: Invalid or missing X-Agent-Access-Key header."
+        )
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 

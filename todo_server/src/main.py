@@ -1,14 +1,7 @@
-import os
-from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from src.websocket import websocket_endpoint  
 
-_ = load_dotenv()
-
-TODOIST_AGENT_ACCESS_KEY = os.getenv("TODOIST_AGENT_ACCESS_KEY")
-if not TODOIST_AGENT_ACCESS_KEY:
-    raise ValueError("TODOIST_AGENT_ACCESS_KEY environment variable not set.")
 
 
 app = FastAPI(

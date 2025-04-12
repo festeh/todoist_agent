@@ -37,19 +37,17 @@ jobs:
 
           # Create systemd service file
           echo "Creating systemd service file..."
-          cat > todo_server.service << 'EOF_SERVICE' # Use quotes to prevent expansion here
+          cat > todo_server.service << 'EOF_SERVICE' 
           [Unit]
           Description=Todoist AI Server
           After=network.target
 
           [Service]
           User=root
-          # Run uvicorn from the todo_server directory where .env is located
           ExecStart=/root/todo_server/.venv/bin/uvicorn todo_server.src.main:app --port 9090
-          WorkingDirectory=/root/todo_server # Set working directory for .env loading
+          WorkingDirectory=/root/todo_server
           Restart=always
 
-          # Optional: If environment variables need to be explicitly passed (dotenv usually handles this)
           # EnvironmentFile=/home/root/todo_server/.env
 
           [Install]
