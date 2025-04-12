@@ -36,8 +36,32 @@ class WebSocketManager {
 
     _updateStatus(ConnectionStatus.connecting);
 
+    // Retrieve the access key from environment variables
+    const String agentAccessKey = String.fromEnvironment(
+      'TODOIST_AGENT_ACCESS_KEY',
+      defaultValue: '', // Provide a default value or handle missing key
+    );
+
+    if (agentAccessKey.isEmpty) {
+      final errorMessage =
+          'TODOIST_AGENT_ACCESS_KEY environment variable not set.';
+      _updateError(errorMessage);
+      _updateStatus(ConnectionStatus.error);
+      debugPrint(errorMessage);
+      return; // Prevent connection attempt if key is missing
+    }
+
+    // Prepare headers
+    final Map<String, dynamic> headers = {
+      'X-Agent-Access-Key': agentAccessKey,
+    };
+
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(_url));
+      // Pass headers to the connect method
+      _channel = WebSocketChannel.connect(
+        Uri.parse(_url),
+        headers: headers,
+      );
 
       _channelSubscription = _channel!.stream.listen(
         (message) {
