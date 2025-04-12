@@ -114,9 +114,9 @@ class _AiFlowState extends State<AiFlow> {
   void _stop() {
     _timer.cancel();
     _stopwatch.stop();
-    setState(() {
-      _recording = false;
-    });
+    // No need to call setState here as the widget is being disposed
+    // or the state is updated elsewhere (e.g., in _stopTimerAndRecording)
+    _recording = false; // Just update the variable directly if needed
   }
 
   Future<void> _stopTimerAndRecording() async {
