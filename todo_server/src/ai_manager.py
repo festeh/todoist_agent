@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from datetime import datetime
+import httpx
 
 _ = load_dotenv()
 
@@ -47,7 +48,7 @@ class AiManager:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_request},
                     ],
-                    timeout=10,
+                    timeout=httpx.Timeout(10.0),
                     extra_body=extra_body,
                 )
                 completion = response.choices[0].message.content

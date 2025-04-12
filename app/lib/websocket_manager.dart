@@ -57,21 +57,11 @@ class WebSocketManager {
       // Listen for messages, errors, and closure
       _channelSubscription = _channel!.listen(
         (message) {
-          if (message is String) {
-            debugPrint('Raw WebSocket message (String): $message');
-            try {
-              final decoded = jsonDecode(message);
-              if (decoded is Map && decoded.containsKey('message')) {
-                _messageController.add(decoded['message']);
-              }
-            } catch (e) {
-              debugPrint("Failed to decode JSON message: $e");
-              // Handle non-JSON string messages if necessary
-            }
-          } else {
+          if (message is! String) {
             debugPrint(
               'Received unexpected message type: ${message.runtimeType}',
             );
+            return;
           }
           final decoded = jsonDecode(message);
           if (decoded.containsKey('message')) {
