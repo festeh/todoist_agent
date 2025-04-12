@@ -43,6 +43,7 @@ jobs:
           After=network.target
 
           [Service]
+          User=root
           # Run uvicorn from the todo_server directory where .env is located
           ExecStart=/root/todo_server/.venv/bin/uvicorn todo_server.src.main:app --port 9090
           WorkingDirectory=/root/todo_server # Set working directory for .env loading
