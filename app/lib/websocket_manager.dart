@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert'; // Import for jsonEncode
-import 'dart:typed_data'; // Import for Uint8List
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:flutter/material.dart'; // Keep for debugPrint or potential UI interaction
+import 'package:flutter/material.dart';
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
 
@@ -13,7 +13,6 @@ class WebSocketManager {
   ConnectionStatus _status = ConnectionStatus.disconnected;
   String _errorMessage = '';
 
-  // Stream controllers to broadcast changes
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _errorController = StreamController<String>.broadcast();
   final _messageController = StreamController<String>.broadcast();
@@ -122,7 +121,7 @@ class WebSocketManager {
       _channel?.sink.add("END_AUDIO");
       debugPrint('Sent END_AUDIO marker.');
 
-      return true; // Indicate success
+      return true;
     } catch (e) {
       final errorMessage = 'Failed during audio send process: $e';
       _updateError(errorMessage);
