@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io'; // Use dart:io for WebSocket
 import 'dart:typed_data';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // Use foundation for debugPrint
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
 
 class WebSocketManager {
-  WebSocketChannel? _channel;
+  WebSocket? _channel; // Changed type to dart:io WebSocket
   StreamSubscription? _channelSubscription;
   final String _url;
   ConnectionStatus _status = ConnectionStatus.disconnected;
@@ -50,11 +50,33 @@ class WebSocketManager {
     final Map<String, dynamic> headers = {'X-Agent-Access-Key': agentAccessKey};
 
     try {
-      _channel = WebSocketChannel.connect(Uri.parse(_url), headers: headers);
+      // Use WebSocket.connect from dart:io
+      _channel = await WebSocket.connect(_url, headers: headers);
 
-      _channelSubscription = _channel!.stream.listen(
+      _updateStatus(ConnectionStatus.connected);
+      debugPrint('WebSocket connected to $_url');
+
+      // Listen for messages, errors, and closure
+      _channelSubscription = _channel!.listen(
         (message) {
-          debugPrint('Raw WebSocket message: $message');
+          // Handle incoming messages (String or List<int>)
+          if (message is String) {
+            debugPrint('Raw WebSocket message (String): $message');
+            try {
+              final decoded = jsonDecode(message);
+              if (decoded is Map && decoded.containsKey('message')) {
+                _messageController.add(decoded['message']);
+              }
+            } catch (e) {
+              debugPrint("Failed to decode JSON message: $e");
+              // Handle non-JSON string messages if necessary
+            }
+          } else if (message is List<int>) {
+            // Handle binary messages if needed
+            debugPrint('Received binary message of length: ${message.length}');
+          } else {
+            debugPrint('Received unexpected message type: ${message.runtimeType}');
+          }
           final decoded = jsonDecode(message);
           if (decoded.containsKey('message')) {
             _messageController.add(decoded['message']);
@@ -65,33 +87,37 @@ class WebSocketManager {
           //   debugPrint('Received ASR message: $asrText');
           // } else {
           //   debugPrint('Received other JSON message: $decoded');
-          // }
+        },
+        onError: (error) {
+          _updateError('WebSocket error: $error');
+          _updateStatus(ConnectionStatus.error);
+          debugPrint('WebSocket error: $error');
+          // Consider attempting reconnection or other error handling
         },
         onDone: () {
           _updateStatus(ConnectionStatus.disconnected);
-          debugPrint('WebSocket connection closed');
+          debugPrint('WebSocket connection closed by server.');
+          // Clean up resources if needed, or attempt reconnection
+          _channel = null; // Ensure channel is nullified on closure
+          _channelSubscription?.cancel();
+          _channelSubscription = null;
         },
-        onError: (error) {
-          _updateError('Connection error: $error');
-          _updateStatus(ConnectionStatus.error);
-          debugPrint('WebSocket error: $error');
-        },
+        cancelOnError: true, // Close the stream on error
       );
-
-      _updateStatus(ConnectionStatus.connected);
-      debugPrint('WebSocket connected to $_url');
     } catch (e) {
-      _updateError('Failed to connect: $e');
+      _updateError('Failed to connect to WebSocket: $e');
       _updateStatus(ConnectionStatus.error);
       debugPrint('WebSocket connection failed: $e');
     }
   }
 
   Future<void> disconnect() async {
-    await _channelSubscription?.cancel();
+    await _channelSubscription?.cancel(); // Cancel the listener first
     _channelSubscription = null;
-    _channel?.sink.close();
+    await _channel?.close(); // Close the WebSocket connection
     _channel = null;
+    _updateStatus(ConnectionStatus.disconnected); // Update status after closing
+    debugPrint('WebSocket disconnected.');
   }
 
   bool send(dynamic data) {
@@ -100,7 +126,7 @@ class WebSocketManager {
     }
 
     try {
-      _channel?.sink.add(data);
+      _channel?.add(data); // Use add() directly on WebSocket
       return true;
     } catch (e) {
       _updateError('Failed to send data: $e');
@@ -115,23 +141,29 @@ class WebSocketManager {
       return false;
     }
 
-    const int chunkSize = 1024 * 1024; // 1MB chunk size
+    // dart:io WebSocket handles fragmentation, sending large data directly is often fine.
+    // However, if explicit chunking is required by the server protocol:
+    const int chunkSize = 1024 * 1024; // 1MB chunk size (adjust if needed)
 
     try {
-      _channel?.sink.add("START_AUDIO");
+      _channel?.add("START_AUDIO"); // Use add()
       debugPrint('Sent START_AUDIO marker.');
 
-      for (int i = 0; i < audioBytes.length; i += chunkSize) {
+      // Send audio data (can send Uint8List directly)
+      // If chunking is strictly necessary:
+      /* for (int i = 0; i < audioBytes.length; i += chunkSize) {
         final end =
             (i + chunkSize < audioBytes.length)
-                ? i + chunkSize
-                : audioBytes.length;
-        final chunk = audioBytes.sublist(i, end).toList();
-        // final chunkMessage = jsonEncode({'bytes': chunk});
-        _channel?.sink.add(chunk);
-      }
+                 ? i + chunkSize
+                 : audioBytes.length;
+         final chunk = audioBytes.sublist(i, end); // sublist creates Uint8List
+         _channel?.add(chunk); // Use add()
+       } */
 
-      _channel?.sink.add("END_AUDIO");
+      // Simpler approach: Send the whole byte list at once
+      _channel?.add(audioBytes); // Use add()
+
+      _channel?.add("END_AUDIO"); // Use add()
       debugPrint('Sent END_AUDIO marker.');
 
       return true;
@@ -151,7 +183,7 @@ class WebSocketManager {
     }
 
     try {
-      _channel?.sink.add(
+      _channel?.add( // Use add()
         jsonEncode({'type': 'transcription', 'message': text}),
       );
       debugPrint('Sent transcription: $text');
