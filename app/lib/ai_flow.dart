@@ -56,6 +56,7 @@ class _AiFlowState extends State<AiFlow> {
     _stopwatch.start();
 
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (!mounted) return; // Check if the widget is still mounted
       if (_stopwatch.isRunning) {
         setState(() {
           _elapsedTime = _formatTime(_stopwatch.elapsedMilliseconds);
@@ -78,7 +79,7 @@ class _AiFlowState extends State<AiFlow> {
     _webSocketManager = WebSocketManager(websocketUrl);
 
     _webSocketManager.onStatusChange.listen((status) {
-      if (!mounted) return;
+      if (!mounted) return; // Check if the widget is still mounted
       setState(() {
         debugPrint('WebSocket status changed: $status');
         _connectionStatus = status; // Update with the actual status
@@ -93,7 +94,7 @@ class _AiFlowState extends State<AiFlow> {
     });
 
     _webSocketManager.onMessage.listen((message) {
-      if (!mounted) return;
+      if (!mounted) return; // Check if the widget is still mounted
       setState(() {
         _receivedMessages.add(message); // Add new message to the list
         debugPrint('UI received ASR message: $message');
@@ -101,7 +102,7 @@ class _AiFlowState extends State<AiFlow> {
     });
 
     _webSocketManager.onError.listen((error) {
-      if (!mounted) return;
+      if (!mounted) return; // Check if the widget is still mounted
       setState(() {
         _connectionStatus = ConnectionStatus.error;
         _connectionError = error;
