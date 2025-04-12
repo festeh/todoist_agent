@@ -47,6 +47,7 @@ jobs:
           ExecStart=/home/root/todo_server/.venv/bin/uvicorn todo_server.src.main:app --port 9090
           WorkingDirectory=/home/root/todo_server # Set working directory for .env loading
           Restart=always
+          ProtectHome=no # Allow access to home directories
 
           # Optional: If environment variables need to be explicitly passed (dotenv usually handles this)
           # EnvironmentFile=/home/root/todo_server/.env
