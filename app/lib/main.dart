@@ -1,4 +1,7 @@
+import 'dart:io' show Platform; // Import Platform
+import 'package:flutter/foundation.dart' show kIsWeb; // Import kIsWeb for web check
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import PlatformException
 import 'package:wear/wear.dart'; // Import wear package
 import 'standard_app.dart'; // Import the standard app UI
 
@@ -7,52 +10,42 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   bool isWearOS = false;
-  String? shapeResult; // Use nullable type
 
-  try {
-    // Attempt to get the shape from the Wear OS device.
-    // getShape() might return 'round' on PlatformException.
-    shapeResult = await Wear.instance.getShape();
+  // Check if the platform is Android. Wear OS is based on Android.
+  // Added kIsWeb check for completeness.
+  if (!kIsWeb && Platform.isAndroid) {
+    try {
+      // Attempt to call a Wear OS specific method that *rethrows* PlatformException
+      // if the method channel is not available (i.e., not Wear OS).
+      // We use setAutoResumeEnabled(false) as a probe; the value doesn't matter here.
+      await Wear.instance.setAutoResumeEnabled(false);
 
-    // Check if the result is explicitly 'round' or 'square'.
-    // This check implicitly handles the case where getShape might return
-    // 'round' due to an exception, as the exception would be caught below.
-    // However, to be robust against potential future changes in the wear package
-    // or unexpected return values, we explicitly check for the known shapes.
-    if (shapeResult == 'round' || shapeResult == 'square') {
-      // We successfully got a shape, assume it's Wear OS.
-      // We rely on the fact that getShape() only returns these strings
-      // on actual Wear OS devices or 'round' on exception.
-      // The exception case is handled by the catch block.
+      // If the above call succeeded without throwing, it's Wear OS.
       isWearOS = true;
-      debugPrint("Detected Wear OS device: $shapeResult");
-    } else {
-      // Handle cases where getShape might return an empty string or unexpected value
-      // other than 'round' or 'square'.
+      debugPrint("Detected Wear OS device via successful platform channel call.");
+
+      // Optional: Now that we know it's Wear OS, we *could* get the shape
+      // if needed elsewhere, but getShape() might still return 'round'
+      // on an error even on Wear OS. For just the boolean flag, the check
+      // above is sufficient.
+      // String shapeResult = await Wear.instance.getShape();
+      // debugPrint("Wear OS shape: $shapeResult");
+
+    } on PlatformException catch (e) {
+      // This exception is expected on non-Wear OS Android devices.
       debugPrint(
-          "Device is likely not Wear OS (getShape returned '$shapeResult').");
+          "PlatformException caught, indicating not a Wear OS device: $e");
+      isWearOS = false;
+    } catch (e) {
+      // Catch any other unexpected errors during the detection process.
+      debugPrint(
+          "Unexpected error during Wear OS detection on Android: $e");
+      isWearOS = false;
     }
-  } on PlatformException catch (e) {
-    // If a PlatformException occurs (e.g., method not implemented on non-Wear OS),
-    // the wear package's getShape() catches it and returns 'round'.
-    // However, the original exception 'e' is NOT rethrown by the package.
-    // Therefore, this catch block in main.dart might not be strictly necessary
-    // if we only care about the return value of getShape().
-    // But, keeping it helps log that an underlying platform issue occurred.
-    debugPrint(
-        "PlatformException while getting Wear shape, assuming not Wear OS: $e");
-    // isWearOS remains false because the assignment inside the try block
-    // depends on the shapeResult being 'round' or 'square', and if an exception
-    // happened leading to the default 'round', we correctly interpret it here
-    // as "not reliably Wear OS".
-    // If getShape returned 'round' due to exception, shapeResult will be 'round',
-    // but the logic inside the 'if' might have set isWearOS = true.
-    // Let's explicitly set it to false here to be certain.
+  } else {
+    // If not Android (or Web), it cannot be Wear OS.
+    debugPrint("Not an Android platform, assuming not Wear OS.");
     isWearOS = false;
-  } catch (e) {
-    // Catch any other unexpected errors during the process.
-    debugPrint("Unexpected error getting Wear shape, assuming not Wear OS: $e");
-    isWearOS = false; // Ensure isWearOS is false on other errors too.
   }
 
   // Conditionally run the appropriate root widget
