@@ -44,7 +44,7 @@ jobs:
 
           [Service]
           User=root
-          ExecStart=/root/todo_server/.venv/bin/uvicorn todo_server.src.main:app --port 9090
+          ExecStart=/root/todo_server/.venv/bin/uvicorn src.main:app --port 9090
           WorkingDirectory=/root/todo_server
           Restart=always
 
