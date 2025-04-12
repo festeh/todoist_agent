@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'audio_recorder.dart';
 import 'websocket_manager.dart';
-import 'dart:async'; // Ensure Timer is imported if not already implicitly
 
 class AiFlow extends StatefulWidget {
   final String? initialText;
@@ -56,7 +55,7 @@ class _AiFlowState extends State<AiFlow> {
     _stopwatch.start();
 
     _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (!mounted) return; // Check if the widget is still mounted
+      if (!mounted) return;
       if (_stopwatch.isRunning) {
         setState(() {
           _elapsedTime = _formatTime(_stopwatch.elapsedMilliseconds);
@@ -79,10 +78,10 @@ class _AiFlowState extends State<AiFlow> {
     _webSocketManager = WebSocketManager(websocketUrl);
 
     _webSocketManager.onStatusChange.listen((status) {
-      if (!mounted) return; // Check if the widget is still mounted
+      if (!mounted) return;
       setState(() {
         debugPrint('WebSocket status changed: $status');
-        _connectionStatus = status; // Update with the actual status
+        _connectionStatus = status;
 
         if (status == ConnectionStatus.connected &&
             widget.initialText != null &&
