@@ -10,8 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   record: ^6.0.0
-  path_provider: ^2.1.5 # Add path_provider
-  # web_socket_channel: ^2.4.0 # Removed dependency
+  path_provider: ^2.1.5 
   wear: ^1.1.0
 
 dev_dependencies:
