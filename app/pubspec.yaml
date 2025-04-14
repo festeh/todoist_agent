@@ -10,8 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   record: ^6.0.0
-  path_provider: ^2.1.5 
+  path_provider: ^2.1.5
   wear: ^1.1.0
+  audioplayers: ^6.0.0 # Add audioplayers dependency
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:typed_data'; // Import for Uint8List
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart'; // Import audioplayers
 import 'audio_recorder.dart';
 import 'websocket_manager.dart';
 
@@ -23,6 +25,7 @@ class _AiFlowState extends State<AiFlow> {
   String _elapsedTime = _formatTime(0);
 
   final AudioRecorderService _audioRecorderService = AudioRecorderService();
+  final AudioPlayer _audioPlayer = AudioPlayer(); // Initialize AudioPlayer
 
   late WebSocketManager _webSocketManager;
 
@@ -108,6 +111,11 @@ class _AiFlowState extends State<AiFlow> {
       });
     });
 
+    _webSocketManager.onAudioReceived.listen((audioBytes) {
+      if (!mounted) return;
+      _playAudio(audioBytes);
+    });
+
     _webSocketManager.connect();
   }
 
@@ -143,8 +151,10 @@ class _AiFlowState extends State<AiFlow> {
   @override
   void dispose() {
     _stop();
+    _stop();
     _audioRecorderService.dispose();
     _webSocketManager.dispose();
+    _audioPlayer.dispose(); // Dispose the audio player
     super.dispose();
   }
 
@@ -152,6 +162,16 @@ class _AiFlowState extends State<AiFlow> {
     int seconds = (milliseconds / 1000).truncate();
     String secondsStr = seconds.toString().padLeft(2, '0');
     return secondsStr;
+  }
+
+  Future<void> _playAudio(Uint8List audioBytes) async {
+    try {
+      await _audioPlayer.play(BytesSource(audioBytes));
+      debugPrint("Playing received audio...");
+    } catch (e) {
+      debugPrint("Error playing audio: $e");
+      // Optionally show an error message to the user
+    }
   }
 
   Widget _buildConnectionStatusWidget() {

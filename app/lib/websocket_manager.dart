@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'; // Use dart:io for WebSocket
+import 'dart:typed_data'; // Import for Uint8List
 import 'package:flutter/foundation.dart'; // Use foundation for debugPrint
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
@@ -15,6 +16,7 @@ class WebSocketManager {
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _errorController = StreamController<String>.broadcast();
   final _messageController = StreamController<String>.broadcast();
+  final _audioController = StreamController<Uint8List>.broadcast(); // Controller for audio bytes
 
   WebSocketManager(this._url);
 
@@ -26,6 +28,7 @@ class WebSocketManager {
   Stream<ConnectionStatus> get onStatusChange => _statusController.stream;
   Stream<String> get onError => _errorController.stream;
   Stream<String> get onMessage => _messageController.stream;
+  Stream<Uint8List> get onAudioReceived => _audioController.stream; // Stream for audio bytes
 
   Future<void> connect() async {
     if (_status == ConnectionStatus.connected ||
@@ -57,22 +60,34 @@ class WebSocketManager {
       // Listen for messages, errors, and closure
       _channelSubscription = _channel!.listen(
         (message) {
-          if (message is! String) {
-            debugPrint(
-              'Received unexpected message type: ${message.runtimeType}',
-            );
-            return;
+          // Check if the message is binary data (Uint8List)
+          if (message is Uint8List) {
+            debugPrint('Received binary data (assuming MP3), length: ${message.length}');
+            _audioController.add(message); // Add binary data to the audio stream
+          } else if (message is String) {
+            // Handle text messages (existing logic)
+            try {
+              final decoded = jsonDecode(message);
+              if (decoded.containsKey('message')) {
+                _messageController.add(decoded['message']);
+              }
+              // Example: Handle specific text message types if needed
+              // if (decoded['type'] == 'asr' && decoded.containsKey('message')) {
+              //   final asrText = decoded['message'] as String;
+              //   _messageController.add(asrText); // Or use a dedicated stream if preferred
+              //   debugPrint('Received ASR message: $asrText');
+              // } else {
+              //   debugPrint('Received other JSON message: $decoded');
+              // }
+            } catch (e) {
+              debugPrint('Error decoding JSON message: $e');
+              // Handle non-JSON string messages if necessary
+              // _messageController.add(message); // Example: pass raw string
+            }
+          } else {
+            // Handle other unexpected message types
+            debugPrint('Received unexpected message type: ${message.runtimeType}');
           }
-          final decoded = jsonDecode(message);
-          if (decoded.containsKey('message')) {
-            _messageController.add(decoded['message']);
-          }
-          // if (decoded['type'] == 'asr' && decoded.containsKey('message')) {
-          //   final asrText = decoded['message'] as String;
-          //   _asrMessageController.add(asrText);
-          //   debugPrint('Received ASR message: $asrText');
-          // } else {
-          //   debugPrint('Received other JSON message: $decoded');
         },
         onError: (error) {
           _updateError('WebSocket error: $error');
@@ -178,8 +193,10 @@ class WebSocketManager {
 
   void dispose() async {
     await disconnect();
+    await disconnect(); // Ensure disconnect is called before closing controllers
     _statusController.close();
     _errorController.close();
     _messageController.close();
+    _audioController.close(); // Close the audio controller
   }
 }
