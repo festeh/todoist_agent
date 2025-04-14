@@ -98,10 +98,9 @@ class WebsocketManager:
         code = self.ai_manager.get_code_ai_response(
             tasks, code_info, self.transcription
         )
-        code_coro = self._send_message(MessageType.CODE, code)
+        await self._send_message(MessageType.CODE, code)
         exec_result = self.code_manager.execute(code)
         answer = self.ai_manager.get_answer_ai_response(tasks, code, exec_result)
-        await code_coro
         await self._send_message(MessageType.ANSWER, answer)
         audio = self.tts_manager.text_to_speech(answer)
         await self._send_bytes(MessageType.AI_SPEECH, audio)

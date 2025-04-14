@@ -1,4 +1,5 @@
 import os
+from typing import final
 from dotenv import load_dotenv
 from openai import OpenAI
 from datetime import datetime
@@ -7,6 +8,7 @@ import httpx
 _ = load_dotenv()
 
 
+@final
 class AiManager:
     def __init__(self):
         api_key = os.environ.get("OPENROUTER_API_KEY")
@@ -15,6 +17,7 @@ class AiManager:
         self.client: OpenAI = OpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=api_key,
+            timeout=10.0,
         )
 
         self.model: str = "meta-llama/llama-4-maverick"
@@ -26,7 +29,8 @@ class AiManager:
             "google/gemini-2.0-flash-001",
             "google/gemini-2.5-pro-exp-03-25:free",
         ]
-        self.temperature: float = 0.1
+        self.temperature: float = 0.0
+        self.max_tokens = 10000
 
     def _call_ai(
         self, system_prompt: str, user_request: str, model_override: str | None = None
@@ -50,6 +54,7 @@ class AiManager:
                     ],
                     timeout=httpx.Timeout(10.0),
                     extra_body=extra_body,
+                    max_completion_tokens=self.max_tokens,
                 )
                 completion = response.choices[0].message.content
                 assert isinstance(completion, str)
@@ -116,42 +121,43 @@ Always print() the answer of interest
 
     def get_answer_ai_response(self, task: str, code: str, output: str) -> str:
         prompt = """<info>
-        You are given users' request, Python code and result of it's execution (local variables and stdout)
-        Your goal is to briefly summarize code and it's execution result and provide answer to user
-        </info>
+You are given users' request, Python code and result of it's execution (stdout code output)
+Your goal is to briefly summarize code and it's execution result and provide answer to user
+</info>
 
-        <constraints>
-        In answer try to focus on details that matter for user, like was result successful or not or what was done
-        Try to fit anwer in one sentence when possible
-        Output response in Russian language
-        </constraints>
+<constraints>
+In answer try to focus on details that matter for user, like was result successful or not or what was done
+Always describe code output - it's the most important part to user, but do not read project IDs
+Try to fit the answer in one-two sentences when possible
+Output response in Russian language
+</constraints>
 
-        <example>
-        <user_request>
-        How many tasks I have today?
-        </user_request>
+<example>
+<user_request>
+How many tasks I have today?
+</user_request>
 
-        <code>
-        from datetime import datetime
+<code>
+from datetime import datetime
 
-        def count_tasks_for_today(client):
-            tasks = client.get_tasks()
-            today = datetime.now().strftime('%Y-%m-%d')
-            count = sum(1 for task in tasks if task.due and task.due.date == today)
-            return count
+def count_tasks_for_today(client):
+    tasks = client.get_tasks()
+    today = datetime.now().strftime('%Y-%m-%d')
+    count = sum(1 for task in tasks if task.due and task.due.date == today)
+    return count
 
-        print(count_tasks_for_today(client))
-        </code>
+print(count_tasks_for_today(client))
+</code>
 
-        <output>
-        Successfully executed code:
-        2
-        </output>
+<output>
+Successfully executed code:
+2
+</output>
 
-        <answer>
-        You have 2 tasks today
-        </answer>
-        </example>
+<answer>
+You have 2 tasks today
+</answer>
+</example>
         """.strip()
         user_request = f"""<user_request>
         {task}

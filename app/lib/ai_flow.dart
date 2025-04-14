@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:typed_data'; // Import for Uint8List
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart'; // Import audioplayers
+import 'package:audioplayers/audioplayers.dart';
 import 'audio_recorder.dart';
 import 'websocket_manager.dart';
 
@@ -25,25 +25,24 @@ class _AiFlowState extends State<AiFlow> {
   String _elapsedTime = _formatTime(0);
 
   final AudioRecorderService _audioRecorderService = AudioRecorderService();
-  final AudioPlayer _audioPlayer = AudioPlayer(); // Initialize AudioPlayer
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   late WebSocketManager _webSocketManager;
 
   ConnectionStatus _connectionStatus = ConnectionStatus.disconnected;
   String _connectionError = '';
-  final List<String> _receivedMessages = []; // List to store ASR messages
-  bool _recording = false; // State variable to track recording status
-  bool _initialTextSent = false; // Track if initial text has been sent
+  final List<String> _receivedMessages = [];
+  bool _recording = false;
+  bool _initialTextSent = false;
 
   @override
   void initState() {
     super.initState();
-    // Conditionally start recording based on the flag passed to the widget
+
     if (widget.startRecordingOnInit) {
       _startTimerAndRecording();
     } else {
-      // Initialize timer state even if not starting immediately
-      _timer = Timer(Duration.zero, () {}); // Dummy timer initially
+      _timer = Timer(Duration.zero, () {});
       _recording = false;
       _elapsedTime = _formatTime(0);
     }
@@ -96,15 +95,15 @@ class _AiFlowState extends State<AiFlow> {
     });
 
     _webSocketManager.onMessage.listen((message) {
-      if (!mounted) return; // Check if the widget is still mounted
+      if (!mounted) return;
       setState(() {
-        _receivedMessages.add(message); // Add new message to the list
+        _receivedMessages.add(message);
         debugPrint('UI received ASR message: $message');
       });
     });
 
     _webSocketManager.onError.listen((error) {
-      if (!mounted) return; // Check if the widget is still mounted
+      if (!mounted) return;
       setState(() {
         _connectionStatus = ConnectionStatus.error;
         _connectionError = error;
@@ -170,7 +169,6 @@ class _AiFlowState extends State<AiFlow> {
       debugPrint("Playing received audio...");
     } catch (e) {
       debugPrint("Error playing audio: $e");
-      // Optionally show an error message to the user
     }
   }
 

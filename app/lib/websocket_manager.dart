@@ -16,7 +16,8 @@ class WebSocketManager {
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _errorController = StreamController<String>.broadcast();
   final _messageController = StreamController<String>.broadcast();
-  final _audioController = StreamController<Uint8List>.broadcast(); // Controller for audio bytes
+  final _audioController =
+      StreamController<Uint8List>.broadcast(); // Controller for audio bytes
 
   WebSocketManager(this._url);
 
@@ -28,7 +29,8 @@ class WebSocketManager {
   Stream<ConnectionStatus> get onStatusChange => _statusController.stream;
   Stream<String> get onError => _errorController.stream;
   Stream<String> get onMessage => _messageController.stream;
-  Stream<Uint8List> get onAudioReceived => _audioController.stream; // Stream for audio bytes
+  Stream<Uint8List> get onAudioReceived =>
+      _audioController.stream; // Stream for audio bytes
 
   Future<void> connect() async {
     if (_status == ConnectionStatus.connected ||
@@ -60,12 +62,12 @@ class WebSocketManager {
       // Listen for messages, errors, and closure
       _channelSubscription = _channel!.listen(
         (message) {
-          // Check if the message is binary data (Uint8List)
           if (message is Uint8List) {
-            debugPrint('Received binary data (assuming MP3), length: ${message.length}');
-            _audioController.add(message); // Add binary data to the audio stream
+            debugPrint(
+              'Received binary data (assuming MP3), length: ${message.length}',
+            );
+            _audioController.add(message);
           } else if (message is String) {
-            // Handle text messages (existing logic)
             try {
               final decoded = jsonDecode(message);
               if (decoded.containsKey('message')) {
@@ -81,29 +83,27 @@ class WebSocketManager {
               // }
             } catch (e) {
               debugPrint('Error decoding JSON message: $e');
-              // Handle non-JSON string messages if necessary
-              // _messageController.add(message); // Example: pass raw string
             }
           } else {
             // Handle other unexpected message types
-            debugPrint('Received unexpected message type: ${message.runtimeType}');
+            debugPrint(
+              'Received unexpected message type: ${message.runtimeType}',
+            );
           }
         },
         onError: (error) {
           _updateError('WebSocket error: $error');
           _updateStatus(ConnectionStatus.error);
           debugPrint('WebSocket error: $error');
-          // Consider attempting reconnection or other error handling
         },
         onDone: () {
           _updateStatus(ConnectionStatus.disconnected);
           debugPrint('WebSocket connection closed by server.');
-          // Clean up resources if needed, or attempt reconnection
-          _channel = null; // Ensure channel is nullified on closure
+          _channel = null;
           _channelSubscription?.cancel();
           _channelSubscription = null;
         },
-        cancelOnError: true, // Close the stream on error
+        cancelOnError: true,
       );
     } catch (e) {
       _updateError('Failed to connect to WebSocket: $e');
@@ -113,11 +113,11 @@ class WebSocketManager {
   }
 
   Future<void> disconnect() async {
-    await _channelSubscription?.cancel(); // Cancel the listener first
+    await _channelSubscription?.cancel();
     _channelSubscription = null;
-    await _channel?.close(); // Close the WebSocket connection
+    await _channel?.close();
     _channel = null;
-    _updateStatus(ConnectionStatus.disconnected); // Update status after closing
+    _updateStatus(ConnectionStatus.disconnected);
     debugPrint('WebSocket disconnected.');
   }
 
@@ -127,7 +127,7 @@ class WebSocketManager {
     }
 
     try {
-      _channel?.add(data); // Use add() directly on WebSocket
+      _channel?.add(data);
       return true;
     } catch (e) {
       _updateError('Failed to send data: $e');
@@ -168,9 +168,7 @@ class WebSocketManager {
     }
 
     try {
-      _channel?.add(
-        jsonEncode({'type': 'transcription', 'message': text}),
-      );
+      _channel?.add(jsonEncode({'type': 'transcription', 'message': text}));
       debugPrint('Sent transcription: $text');
       return true;
     } catch (e) {
@@ -193,10 +191,9 @@ class WebSocketManager {
 
   void dispose() async {
     await disconnect();
-    await disconnect(); // Ensure disconnect is called before closing controllers
     _statusController.close();
     _errorController.close();
     _messageController.close();
-    _audioController.close(); // Close the audio controller
+    _audioController.close();
   }
 }
