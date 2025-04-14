@@ -14,6 +14,7 @@ from src.ai_manager import AiManager
 from src.code_manager import CodeManager
 from src.groq_manager import GroqManager
 from src.todoist_manager import TodoistManager
+from src.tts_manager import TTSManager
 
 _ = load_dotenv()
 
@@ -28,6 +29,7 @@ class MessageType(StrEnum):
     TRANSCRIPTION = "transcription"
     CODE = "code"
     ANSWER = "answer"
+    AI_SPEECH = "ai_speech"
 
 
 @final
@@ -37,6 +39,7 @@ class WebsocketManager:
         self.todoist_manager = TodoistManager()
         self.ai_manager = AiManager()
         self.code_manager = CodeManager()
+        self.tts_manager = TTSManager()
         self.ws = ws
 
         self.reset()
@@ -50,6 +53,10 @@ class WebsocketManager:
     async def _send_message(self, message_type: MessageType, message: str):
         print(f"Sending {message_type} message: {message}")
         await self.ws.send_text(json.dumps({"type": message_type, "message": message}))
+
+    async def _send_bytes(self, message_type: MessageType, message: bytes):
+        print(f"Sending {message_type} message: {len(message)} bytes.")
+        await self.ws.send_bytes(message)
 
     def fetch_tasks(self):
         self.todoist_coro = self.todoist_manager.get_tasks()
@@ -81,9 +88,6 @@ class WebsocketManager:
         if transcription is None:
             n_bytes = len(self.audio_buffer)
             print(f"Finished receiving audio: {n_bytes} bytes")
-            # await self.ws.send_text(
-            #     Info(f"Audio transmission finished. Received {n_bytes} bytes.").to_msg()
-            # )
             await self.transcribe()
         else:
             self.transcription = transcription
@@ -99,6 +103,8 @@ class WebsocketManager:
         answer = self.ai_manager.get_answer_ai_response(tasks, code, exec_result)
         await code_coro
         await self._send_message(MessageType.ANSWER, answer)
+        audio = self.tts_manager.text_to_speech(answer)
+        await self._send_bytes(MessageType.AI_SPEECH, audio)
 
 
 async def websocket_endpoint(websocket: WebSocket):

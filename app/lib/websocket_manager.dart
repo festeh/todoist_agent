@@ -127,29 +127,13 @@ class WebSocketManager {
       return false;
     }
 
-    // dart:io WebSocket handles fragmentation, sending large data directly is often fine.
-    // However, if explicit chunking is required by the server protocol:
-    const int chunkSize = 1024 * 1024; // 1MB chunk size (adjust if needed)
-
     try {
-      _channel?.add("START_AUDIO"); // Use add()
+      _channel?.add("START_AUDIO");
       debugPrint('Sent START_AUDIO marker.');
 
-      // Send audio data (can send Uint8List directly)
-      // If chunking is strictly necessary:
-      /* for (int i = 0; i < audioBytes.length; i += chunkSize) {
-        final end =
-            (i + chunkSize < audioBytes.length)
-                 ? i + chunkSize
-                 : audioBytes.length;
-         final chunk = audioBytes.sublist(i, end); // sublist creates Uint8List
-         _channel?.add(chunk); // Use add()
-       } */
+      _channel?.add(audioBytes);
 
-      // Simpler approach: Send the whole byte list at once
-      _channel?.add(audioBytes); // Use add()
-
-      _channel?.add("END_AUDIO"); // Use add()
+      _channel?.add("END_AUDIO");
       debugPrint('Sent END_AUDIO marker.');
 
       return true;
@@ -170,7 +154,6 @@ class WebSocketManager {
 
     try {
       _channel?.add(
-        // Use add()
         jsonEncode({'type': 'transcription', 'message': text}),
       );
       debugPrint('Sent transcription: $text');
