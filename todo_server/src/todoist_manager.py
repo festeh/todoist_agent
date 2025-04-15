@@ -7,9 +7,10 @@ from datetime import date, datetime
 import inspect
 from loguru import logger
 
-from todoist_api_python.models import Due, Task, Project, Label, QuickAddResult
+from todoist_api_python.models import Due, Task, Project, Label
 
 _ = load_dotenv()
+
 
 class TodoistManager:
     def __init__(self, use_async: bool = True):
@@ -17,22 +18,18 @@ class TodoistManager:
         if not todoist_api_token:
             logger.error("TODOIST_API_KEY environment variable not set.")
             raise ValueError("TODOIST_API_KEY environment variable not set.")
-        if use_async:
-            self._todoist: TodoistAPIAsync = TodoistAPIAsync(todoist_api_token)
-        else:
-            self._todoist_sync: TodoistAPI = TodoistAPI(todoist_api_token)
+        self._todoist: TodoistAPIAsync = TodoistAPIAsync(todoist_api_token)
+        self._todoist_sync: TodoistAPI = TodoistAPI(todoist_api_token)
 
     async def get_tasks(self) -> str:
         tasks_coro = self._todoist.get_tasks()
         projects_coro = self._todoist.get_projects()
         results = await asyncio.gather(tasks_coro, projects_coro)
 
-        tasks: list[Task] = results[0]
-        projects: list[Project] = results[1]
+        tasks = results[0]
+        projects = results[1]
 
-        project_map: dict[str, str] = {
-            project.id: project.name for project in projects
-        }
+        project_map: dict[str, str] = {project.id: project.name for project in projects}
 
         tasks_by_project: dict[str, list[str]] = {}
         today = date.today()
@@ -51,16 +48,20 @@ class TodoistManager:
                     else:
                         due_str = f" [{due_date.strftime('%d %b %Y')}]"
                 except ValueError:
-                    logger.warning(f"Failed to parse due date '{task.due.date}' for task '{task.content}'. Using original string.")
-                    due_str = f" [{task.due.string}]" # Fallback to original string
+                    logger.warning(
+                        f"Failed to parse due date '{task.due.date}' for task '{task.content}'. Using original string."
+                    )
+                    due_str = f" [{task.due.string}]"  # Fallback to original string
 
             task_line = f" - {task.content}{due_str}"
             tasks_by_project[project_id].append(task_line)
 
         output_lines = []
         # Sort projects by name for consistent output
-        sorted_project_ids = sorted(tasks_by_project.keys(), key=lambda pid: project_map.get(pid, ""))
-        
+        sorted_project_ids = sorted(
+            tasks_by_project.keys(), key=lambda pid: project_map.get(pid, "")
+        )
+
         for project_id in sorted_project_ids:
             task_lines = tasks_by_project[project_id]
             project_name = project_map.get(project_id, "Unknown Project")
@@ -76,16 +77,20 @@ class TodoistManager:
         try:
             annotations = inspect.get_annotations(cls)
             for name, type_hint in annotations.items():
-                type_name = getattr(type_hint, '__name__', repr(type_hint))
+                type_name = getattr(type_hint, "__name__", repr(type_hint))
                 # Handle Optional types for better readability
                 if "Optional[" in repr(type_hint):
-                    inner_type_repr = repr(type_hint).split('[', 1)[1].rsplit(']', 1)[0]
+                    inner_type_repr = repr(type_hint).split("[", 1)[1].rsplit("]", 1)[0]
                     try:
                         inner_type = eval(inner_type_repr, globals(), locals())
-                        inner_type_name = getattr(inner_type, '__name__', inner_type_repr)
+                        inner_type_name = getattr(
+                            inner_type, "__name__", inner_type_repr
+                        )
                         type_name = f"{inner_type_name} | None"
-                    except Exception as eval_err: # Fallback if eval fails or inner type has no __name__
-                        logger.warning(f"Could not eval inner type '{inner_type_repr}' for Optional hint: {eval_err}")
+                    except Exception as eval_err:  # Fallback if eval fails or inner type has no __name__
+                        logger.warning(
+                            f"Could not eval inner type '{inner_type_repr}' for Optional hint: {eval_err}"
+                        )
                         type_name = f"{inner_type_repr} | None"
 
                 result.append(f"    {name}: {type_name}")
@@ -103,12 +108,12 @@ class TodoistManager:
             attribute = getattr(client, method)
             if inspect.isfunction(attribute):
                 source = inspect.getsource(attribute)
-                signature = source.split('\n')[0].strip(":")
+                signature = source.split("\n")[0].strip(":")
                 result.append(signature)
 
         # Add info for relevant model classes
-        for model_cls in [Task, Project, Label, QuickAddResult, Due]:
+        for model_cls in [Task, Project, Label, Due]:
             result.append("")
             result.extend(self._get_class_fields_info(model_cls))
-
+        logger.info("Collected code context")
         return "\n".join(result)

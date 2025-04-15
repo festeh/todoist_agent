@@ -99,12 +99,15 @@ class WebsocketManager:
             self.audio_buffer = bytearray()
 
     async def tasks(self) -> str:
+        logger.info("Fetching tasks...")
         if self.todoist_coro is None:
             logger.warning(
                 "todoist_coro was None when tasks() was called. Re-fetching."
             )
             self.todoist_coro = self.todoist_manager.get_tasks()
-        return await self.todoist_coro
+        tasks = await self.todoist_coro
+        logger.info("Tasks ready")
+        return tasks
 
     async def exec_flow(self, transcription: str | None = None):
         if transcription is None:

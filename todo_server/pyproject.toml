@@ -7,7 +7,7 @@ name = "todo_server"
 version = "0.1.0"
 description = "A simple FastAPI server."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = { file = "LICENSE" } # Optional: Add a LICENSE file if needed
 authors = [
     { name = "Dmitrii Lipin", email = "your.email@example.com" }, # Replace with your details
@@ -19,7 +19,7 @@ dependencies = [
     "groq>=0.22.0",
     "loguru>=0.7.3",
     "openai>=1.70.0",
-    "todoist-api-python>=1.1.1",
+    "todoist-api-python>=3.0.0",
     "uvicorn[standard]>=0.20.0", # ASGI server (includes performance extras)
 ]
 
