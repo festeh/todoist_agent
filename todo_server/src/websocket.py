@@ -27,7 +27,7 @@ if not TODOIST_AGENT_ACCESS_KEY:
     raise ValueError("TODOIST_AGENT_ACCESS_KEY environment variable not set.")
 
 
-# logger.remove()
+logger.remove()
 _ = logger.add(
     sys.stderr,
     format="{time:YYYY-MM-DD HH:mm:ss.S} | {level: <8} | {name}:{function}:{line} - {message}",
@@ -90,6 +90,8 @@ class WebsocketManager:
             error_message = f"Transcription task failed: {e}"
             logger.error(error_message)
             await self.send_message(MessageType.ERROR, error_message)
+        finally:
+            self.audio_buffer = bytearray()
 
     async def tasks(self) -> str:
         if self.todoist_coro is None:
@@ -166,7 +168,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 if data == "INIT":
                     logger.info("Received INIT message. Resetting manager state.")
                     manager.reset()
-                if data == "START_AUDIO":
+                elif data == "START_AUDIO":
                     logger.info("Received START_AUDIO message.")
                     manager.fetch_tasks()
                     logger.info("Started receiving audio.")
@@ -175,8 +177,6 @@ async def websocket_endpoint(websocket: WebSocket):
                     )
                 elif data == "END_AUDIO":
                     await manager.exec_flow()
-                elif data == "ping":
-                    await websocket.send_text("pong")
                 else:
                     try:
                         json_data: dict[str, str] = json.loads(data)
@@ -185,7 +185,9 @@ async def websocket_endpoint(websocket: WebSocket):
                             await manager.exec_flow(json_data["message"])
                     except json.JSONDecodeError:
                         logger.warning(f"Received invalid JSON data: {data}")
-                        await websocket.send_text("Error: Invalid JSON data.")
+                        await manager.send_message(
+                            MessageType.ERROR, "Received invalid JSON data."
+                        )
                         continue
 
             elif message.get("bytes", False):

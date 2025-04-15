@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io'; // Use dart:io for WebSocket
-import 'dart:typed_data'; // Import for Uint8List
-import 'package:flutter/foundation.dart'; // Use foundation for debugPrint
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
 
 class WebSocketManager {
-  WebSocket? _channel; // Changed type to dart:io WebSocket
+  WebSocket? _channel;
   StreamSubscription? _channelSubscription;
   final String _url;
   ConnectionStatus _status = ConnectionStatus.disconnected;
@@ -21,11 +20,9 @@ class WebSocketManager {
 
   WebSocketManager(this._url);
 
-  // Getters for current status
   ConnectionStatus get status => _status;
   String get errorMessage => _errorMessage;
 
-  // Stream getters
   Stream<ConnectionStatus> get onStatusChange => _statusController.stream;
   Stream<String> get onError => _errorController.stream;
   Stream<String> get onMessage => _messageController.stream;
@@ -75,14 +72,6 @@ class WebSocketManager {
               if (decoded.containsKey('message')) {
                 _messageController.add(decoded['message']);
               }
-              // Example: Handle specific text message types if needed
-              // if (decoded['type'] == 'asr' && decoded.containsKey('message')) {
-              //   final asrText = decoded['message'] as String;
-              //   _messageController.add(asrText); // Or use a dedicated stream if preferred
-              //   debugPrint('Received ASR message: $asrText');
-              // } else {
-              //   debugPrint('Received other JSON message: $decoded');
-              // }
             } catch (e) {
               debugPrint('Error decoding JSON message: $e');
             }
