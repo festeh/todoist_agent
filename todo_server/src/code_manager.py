@@ -23,6 +23,6 @@ class CodeManager:
 
         except Exception as e:
             captured_output = stdout_capture.getvalue()
-            result = f"Error executing code:\n {e}. Output: {captured_output}"
+            result = f"Error executing code: {e}\n stdout: {captured_output}"
             print(result)
-            return captured_output
+            return result

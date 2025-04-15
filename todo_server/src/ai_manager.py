@@ -3,7 +3,7 @@ from typing import final
 from dotenv import load_dotenv
 from openai import OpenAI
 from datetime import datetime
-import httpx
+from openai.types.chat import ChatCompletionMessageParam
 
 _ = load_dotenv()
 
@@ -33,7 +33,11 @@ class AiManager:
         self.max_tokens = 10000
 
     def _call_ai(
-        self, system_prompt: str, user_request: str, model_override: str | None = None
+        self,
+        system_prompt: str,
+        user_request: str,
+        model_override: str | None = None,
+        history: list[ChatCompletionMessageParam] | None = None,
     ) -> str:
         models = [self.model] + self.fallbacks
         if model_override is not None:
@@ -45,15 +49,22 @@ class AiManager:
                 if model == "meta-llama/llama-4-maverick":
                     extra_body = {"provider": {"order": ["Fireworks"]}}
                 if model == "qwen/qwen-2.5-coder-32b-instruct":
-                    extra_body = {"provider": {"order": ["Lambda", "Together", "Fireworks"]}}
+                    extra_body = {
+                        "provider": {"order": ["Lambda", "Together", "Fireworks"]}
+                    }
+                if history is None:
+                    history = []
+                messages: list[ChatCompletionMessageParam] = [
+                    {"role": "system", "content": system_prompt}
+                ]
+                messages.extend(history)
+                messages.append({"role": "user", "content": user_request})
+
                 response = self.client.chat.completions.create(
                     model=model,
                     temperature=self.temperature,
                     stream=False,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_request},
-                    ],
+                    messages=messages,
                     # timeout=httpx.Timeout(10.0),
                     extra_body=extra_body,
                     max_completion_tokens=self.max_tokens,
@@ -103,7 +114,7 @@ Always print() the answer of interest
     """
         return prompt
 
-    def get_code_ai_response(self, tasks: str, code_info: str, user_request: str):
+    def get_code_ai_response(self, tasks: str, code_info: str, user_request: str, history=None):
         prompt = self.get_code_system_prompt(tasks, code_info)
         user_request = f"""<user_request>
 {user_request}
@@ -114,6 +125,7 @@ Always print() the answer of interest
             user_request,
             # model_override="anthropic/claude-3.7-sonnet"
             model_override="qwen/qwen-2.5-coder-32b-instruct",
+            history=history,
         )
         if completion.startswith("```") and completion.endswith("```"):
             completion = completion[3:-3]
@@ -122,7 +134,7 @@ Always print() the answer of interest
         completion = completion.replace("<|python_end|>", "")
         return completion.strip()
 
-    def get_answer_ai_response(self, task: str, code: str, output: str) -> str:
+    def get_answer_ai_response(self, task: str, code: str, output: str, history=None) -> str:
         prompt = """<info>
 You are given users' request, Python code and result of it's execution (stdout code output)
 Your goal is to briefly summarize code and it's execution result and provide answer to user
@@ -174,5 +186,5 @@ You have 2 tasks today
         {output}
         </output>
         """.strip()
-        completion = self._call_ai(prompt, user_request)
+        completion = self._call_ai(prompt, user_request, history=history)
         return completion

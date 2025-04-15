@@ -9,6 +9,7 @@ from typing import final
 from fastapi import WebSocket, WebSocketDisconnect, status
 from enum import StrEnum
 from dotenv import load_dotenv
+from openai.types.chat import ChatCompletionMessageParam
 
 from src.ai_manager import AiManager
 from src.code_manager import CodeManager
@@ -48,13 +49,13 @@ class WebsocketManager:
         self.transcription = None
         self.todoist_coro = None
         self.audio_buffer = bytearray()
-        self.history = []
+        self.history: list[ChatCompletionMessageParam] = []
 
-    async def _send_message(self, message_type: MessageType, message: str):
+    async def send_message(self, message_type: MessageType, message: str):
         print(f"Sending {message_type} message: {message}")
         await self.ws.send_text(json.dumps({"type": message_type, "message": message}))
 
-    async def _send_bytes(self, message_type: MessageType, message: bytes):
+    async def send_bytes(self, message_type: MessageType, message: bytes):
         print(f"Sending {message_type} message: {len(message)} bytes.")
         await self.ws.send_bytes(message)
 
@@ -72,11 +73,11 @@ class WebsocketManager:
             self.transcription = await self.groq_manager.transcribe_audio(
                 bytes(self.audio_buffer), file_format="opus"
             )
-            await self._send_message(MessageType.TRANSCRIPTION, self.transcription)
+            await self.send_message(MessageType.TRANSCRIPTION, self.transcription)
         except Exception as e:
             error_message = f"Transcription task failed: {e}"
             print(error_message)
-            await self._send_message(MessageType.ERROR, error_message)
+            await self.send_message(MessageType.ERROR, error_message)
 
     async def tasks(self) -> str:
         if self.todoist_coro is None:
@@ -96,14 +97,35 @@ class WebsocketManager:
         tasks = await self.tasks()
         code_info = self.todoist_manager.get_code_info()
         code = self.ai_manager.get_code_ai_response(
-            tasks, code_info, self.transcription
+            tasks, code_info, self.transcription, self.history
         )
-        await self._send_message(MessageType.CODE, code)
+        await self.send_message(MessageType.CODE, code)
         exec_result = self.code_manager.execute(code)
-        answer = self.ai_manager.get_answer_ai_response(tasks, code, exec_result)
-        await self._send_message(MessageType.ANSWER, answer)
+        answer = self.ai_manager.get_answer_ai_response(
+            tasks, code, exec_result, self.history
+        )
+        await self.send_message(MessageType.ANSWER, answer)
         audio = self.tts_manager.text_to_speech(answer)
-        await self._send_bytes(MessageType.AI_SPEECH, audio)
+        await self.send_bytes(MessageType.AI_SPEECH, audio)
+        self.update_history(code, exec_result, answer)
+
+    def update_history(self, code: str, exec_result: str, answer: str):
+        transcription = """
+<user_request_history>
+{transcription}
+</user_request_history>
+        """.strip()
+        self.history.append({"content": transcription, "role": "user"})
+        combined_message = f"""<code_history>
+{code}
+</code_history>
+<output_history>
+{exec_result}
+</output_history>
+<answer_history>
+{answer}
+</answer_history>""".strip()
+        self.history.append({"content": combined_message, "role": "assistant"})
 
 
 async def websocket_endpoint(websocket: WebSocket):
@@ -129,7 +151,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 if data == "START_AUDIO":
                     manager.fetch_tasks()
                     print("Started receiving audio.")
-                    await manager._send_message(
+                    await manager.send_message(
                         MessageType.INFO, "Audio transmission started."
                     )
                 elif data == "END_AUDIO":
