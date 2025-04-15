@@ -15,8 +15,7 @@ class WebSocketManager {
   final _statusController = StreamController<ConnectionStatus>.broadcast();
   final _errorController = StreamController<String>.broadcast();
   final _messageController = StreamController<String>.broadcast();
-  final _audioController =
-      StreamController<Uint8List>.broadcast(); // Controller for audio bytes
+  final _audioController = StreamController<Uint8List>.broadcast();
 
   WebSocketManager(this._url);
 
@@ -26,8 +25,7 @@ class WebSocketManager {
   Stream<ConnectionStatus> get onStatusChange => _statusController.stream;
   Stream<String> get onError => _errorController.stream;
   Stream<String> get onMessage => _messageController.stream;
-  Stream<Uint8List> get onAudioReceived =>
-      _audioController.stream; // Stream for audio bytes
+  Stream<Uint8List> get onAudioReceived => _audioController.stream;
 
   Future<void> connect() async {
     if (_status == ConnectionStatus.connected ||

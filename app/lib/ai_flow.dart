@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'audio_recorder.dart';
 import 'websocket_manager.dart';
-import 'message_list_view.dart'; 
+import 'message_list_view.dart';
 
 class AiFlow extends StatefulWidget {
   final String? initialText;
@@ -34,7 +34,6 @@ class _AiFlowState extends State<AiFlow> {
   String _connectionError = '';
   final List<String> _receivedMessages = [];
   bool _recording = false;
-  bool _initialTextSent = false;
 
   @override
   void initState() {
@@ -68,14 +67,14 @@ class _AiFlowState extends State<AiFlow> {
 
     await _audioRecorderService.startRecording();
     setState(() {
-      _recording = true; // Update recording state
+      _recording = true;
     });
   }
 
   void _initWebSocket() {
     final websocketUrl = const String.fromEnvironment(
       'WEBSOCKET_URL',
-      defaultValue: 'ws://localhost:8000/connect', // Ensure this is correct
+      defaultValue: 'ws://localhost:8000/connect',
     );
 
     _webSocketManager = WebSocketManager(websocketUrl);
@@ -87,10 +86,8 @@ class _AiFlowState extends State<AiFlow> {
         _connectionStatus = status;
 
         if (status == ConnectionStatus.connected &&
-            widget.initialText != null &&
-            !_initialTextSent) {
+            widget.initialText != null) {
           _webSocketManager.sendTranscription(widget.initialText!);
-          _initialTextSent = true; // Mark as sent
         }
       });
     });
@@ -261,13 +258,10 @@ class _AiFlowState extends State<AiFlow> {
                 _recording ? 'Stop' : 'Record',
               ), // Change text based on state
             ),
-            const SizedBox(height: 20), // Add some space
+            const SizedBox(height: 20),
             _buildConnectionStatusWidget(),
-            const SizedBox(height: 20), // Add space before messages
-            // Display the list of messages using the new widget
-            Expanded(
-              child: MessageListView(messages: _receivedMessages),
-            ),
+            const SizedBox(height: 20),
+            Expanded(child: MessageListView(messages: _receivedMessages)),
           ],
         ),
       ),
