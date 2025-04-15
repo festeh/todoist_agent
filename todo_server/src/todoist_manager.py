@@ -24,10 +24,10 @@ class TodoistManager:
     async def get_tasks(self) -> str:
         tasks_coro = self._todoist.get_tasks()
         projects_coro = self._todoist.get_projects()
-        results = await asyncio.gather(tasks_coro, projects_coro)
+        tasks, projects_generator = await asyncio.gather(tasks_coro, projects_coro)
 
-        tasks = results[0]
-        projects = results[1]
+        # Consume the async generator to get a list of projects
+        projects = [project async for project in projects_generator]
 
         project_map: dict[str, str] = {project.id: project.name for project in projects}
 
