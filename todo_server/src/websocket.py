@@ -57,6 +57,7 @@ class WebsocketManager:
         self.reset()
 
     def reset(self):
+        logger.info("Resetting WebsocketManager")
         self.transcription = None
         self.todoist_coro = None
         self.audio_buffer = bytearray()
@@ -67,12 +68,16 @@ class WebsocketManager:
         await self.ws.send_text(json.dumps({"type": message_type, "message": message}))
 
     async def send_bytes(self, message_type: MessageType, message: bytes):
+        if len(message) == 0:
+            logger.warning(f"Received empty {message_type} message.")
+            await self.send_message(MessageType.ERROR, "Received empty bytes message.")
+            return
         logger.info(f"Sending {message_type} message: {len(message)} bytes.")
         await self.ws.send_bytes(message)
 
     def fetch_tasks(self):
         self.todoist_coro = self.todoist_manager.get_tasks()
-        logger.debug("Fetching tasks initiated.")
+        logger.info("Fetching tasks initiated.")
 
     def add_chunk(self, chunk: bytes):
         self.audio_buffer.extend(chunk)
@@ -109,7 +114,7 @@ class WebsocketManager:
             )
             await self.transcribe()
         else:
-            logger.info("Using provided transcription.")
+            logger.info(f"Using provided transcription: {transcription}")
             self.transcription = transcription
         if self.transcription is None:
             return
@@ -120,6 +125,7 @@ class WebsocketManager:
         )
         await self.send_message(MessageType.CODE, code)
         exec_result = self.code_manager.execute(code)
+        await self.send_message(MessageType.INFO, exec_result)
         answer = self.ai_manager.get_answer_ai_response(
             tasks, code, exec_result, self.history
         )
@@ -164,14 +170,11 @@ async def websocket_endpoint(websocket: WebSocket):
             message = await websocket.receive()
             if message.get("text", False):
                 data: str = message["text"]
-                logger.debug(f"Received text message: {data}")
+                logger.info(f"Received message: {data}")
                 if data == "INIT":
-                    logger.info("Received INIT message. Resetting manager state.")
                     manager.reset()
                 elif data == "START_AUDIO":
-                    logger.info("Received START_AUDIO message.")
                     manager.fetch_tasks()
-                    logger.info("Started receiving audio.")
                     await manager.send_message(
                         MessageType.INFO, "Audio transmission started."
                     )

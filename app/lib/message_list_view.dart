@@ -14,23 +14,15 @@ class MessageListView extends StatelessWidget {
     return ListView.builder(
       itemCount: messages.length,
       itemBuilder: (context, index) {
-        // Wrap the Text widget with a Container for background and padding
         return Container(
-          margin: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 4.0, // Vertical spacing between containers
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12.0,
-            vertical: 8.0, // Padding inside the container
-          ),
+          margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceVariant, // Use a subtle background color from the theme
-            borderRadius: BorderRadius.circular(
-              8.0,
-            ), // Optional: Add rounded corners
+            color:
+                Theme.of(context)
+                    .colorScheme
+                    .surfaceVariant, // Use a subtle background color from the theme
+            borderRadius: BorderRadius.circular(8.0),
           ),
           child: Text(
             messages[index],

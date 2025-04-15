@@ -27,19 +27,19 @@ class TTSManager:
 
     def text_to_speech(self, text: str):
         logger.info(f"Generating speech for text: '{text[:50]}...'")
-        result = self.client.generate(
-            text=text,
-            # optimize_streaming_latency=1,
-            model="eleven_flash_v2_5",
-            output_format="mp3_22050_32",
-        )
         try:
+            result = self.client.generate(
+                text=text,
+                # optimize_streaming_latency=1,
+                model="eleven_flash_v2_5",
+                output_format="mp3_22050_32",
+            )
             audio_bytes = b"".join(result)
             logger.info(f"Generated {len(audio_bytes)} bytes of audio.")
             return audio_bytes
         except Exception as e:
             logger.error(f"Failed to generate audio: {e}")
-            raise
+            return ""
 
 
 if __name__ == "__main__":

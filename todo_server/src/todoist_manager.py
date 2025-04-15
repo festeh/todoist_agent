@@ -47,7 +47,7 @@ class TodoistManager:
                 try:
                     due_date = datetime.strptime(task.due.date, "%Y-%m-%d").date()
                     if due_date == today:
-                        due_str = " [TODAY]"
+                        due_str = " [today]"
                     else:
                         due_str = f" [{due_date.strftime('%d %b %Y')}]"
                 except ValueError:
