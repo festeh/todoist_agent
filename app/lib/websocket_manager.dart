@@ -59,6 +59,8 @@ class WebSocketManager {
       _updateStatus(ConnectionStatus.connected);
       debugPrint('WebSocket connected to $_url');
 
+      _channel?.add("INIT");
+
       // Listen for messages, errors, and closure
       _channelSubscription = _channel!.listen(
         (message) {

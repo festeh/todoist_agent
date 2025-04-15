@@ -44,6 +44,8 @@ class AiManager:
                 extra_body = None
                 if model == "meta-llama/llama-4-maverick":
                     extra_body = {"provider": {"order": ["Fireworks"]}}
+                if model == "qwen/qwen-2.5-coder-32b-instruct":
+                    extra_body = {"provider": {"order": ["Lambda", "Together", "Fireworks"]}}
                 response = self.client.chat.completions.create(
                     model=model,
                     temperature=self.temperature,
@@ -52,7 +54,7 @@ class AiManager:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_request},
                     ],
-                    timeout=httpx.Timeout(10.0),
+                    # timeout=httpx.Timeout(10.0),
                     extra_body=extra_body,
                     max_completion_tokens=self.max_tokens,
                 )
@@ -111,6 +113,7 @@ Always print() the answer of interest
             prompt,
             user_request,
             # model_override="anthropic/claude-3.7-sonnet"
+            model_override="qwen/qwen-2.5-coder-32b-instruct",
         )
         if completion.startswith("```") and completion.endswith("```"):
             completion = completion[3:-3]
