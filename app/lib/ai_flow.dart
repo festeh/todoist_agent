@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'audio_recorder.dart';
 import 'websocket_manager.dart';
+import 'message_list_view.dart'; // Import the new widget
 
 class AiFlow extends StatefulWidget {
   final String? initialText;
@@ -262,40 +263,10 @@ class _AiFlowState extends State<AiFlow> {
             ),
             const SizedBox(height: 20), // Add some space
             _buildConnectionStatusWidget(),
-            const SizedBox(height: 20), // Add space before ASR messages
-            // Display the list of ASR messages
+            const SizedBox(height: 20), // Add space before messages
+            // Display the list of messages using the new widget
             Expanded(
-              // Use Expanded to take available space
-              child: ListView.builder(
-                itemCount: _receivedMessages.length,
-                itemBuilder: (context, index) {
-                  // Wrap the Text widget with a Container for background and padding
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 4.0, // Vertical spacing between containers
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
-                      vertical: 8.0, // Padding inside the container
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          Theme.of(context)
-                              .colorScheme
-                              .surfaceVariant, // Use a subtle background color from the theme
-                      borderRadius: BorderRadius.circular(
-                        8.0,
-                      ), // Optional: Add rounded corners
-                    ),
-                    child: Text(
-                      _receivedMessages[index],
-                      style: Theme.of(context).textTheme.bodyLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                  );
-                },
-              ),
+              child: MessageListView(messages: _receivedMessages),
             ),
           ],
         ),
