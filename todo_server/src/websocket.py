@@ -27,12 +27,11 @@ if not TODOIST_AGENT_ACCESS_KEY:
     raise ValueError("TODOIST_AGENT_ACCESS_KEY environment variable not set.")
 
 
-# Configure Loguru logger
-logger.remove() # Remove default handler
-logger.add(
+# logger.remove()
+_ = logger.add(
     sys.stderr,
     format="{time:YYYY-MM-DD HH:mm:ss.S} | {level: <8} | {name}:{function}:{line} - {message}",
-    level="DEBUG" # Set the desired log level
+    level="DEBUG",
 )
 
 
@@ -94,14 +93,18 @@ class WebsocketManager:
 
     async def tasks(self) -> str:
         if self.todoist_coro is None:
-            logger.warning("todoist_coro was None when tasks() was called. Re-fetching.")
+            logger.warning(
+                "todoist_coro was None when tasks() was called. Re-fetching."
+            )
             self.todoist_coro = self.todoist_manager.get_tasks()
         return await self.todoist_coro
 
     async def exec_flow(self, transcription: str | None = None):
         if transcription is None:
             n_bytes = len(self.audio_buffer)
-            logger.info(f"Finished receiving audio: {n_bytes} bytes. Starting transcription.")
+            logger.info(
+                f"Finished receiving audio: {n_bytes} bytes. Starting transcription."
+            )
             await self.transcribe()
         else:
             logger.info("Using provided transcription.")
