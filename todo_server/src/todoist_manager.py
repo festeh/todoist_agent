@@ -5,6 +5,7 @@ import os
 import asyncio
 from datetime import date, datetime
 import inspect
+from loguru import logger
 
 from todoist_api_python.models import Due, Task, Project, Label, QuickAddResult
 
@@ -14,6 +15,7 @@ class TodoistManager:
     def __init__(self, use_async: bool = True):
         todoist_api_token = os.getenv("TODOIST_API_KEY")
         if not todoist_api_token:
+            logger.error("TODOIST_API_KEY environment variable not set.")
             raise ValueError("TODOIST_API_KEY environment variable not set.")
         if use_async:
             self._todoist: TodoistAPIAsync = TodoistAPIAsync(todoist_api_token)
@@ -49,7 +51,7 @@ class TodoistManager:
                     else:
                         due_str = f" [{due_date.strftime('%d %b %Y')}]"
                 except ValueError:
-                    print(f"Failed to parse due date: {task.due.date}")
+                    logger.warning(f"Failed to parse due date '{task.due.date}' for task '{task.content}'. Using original string.")
                     due_str = f" [{task.due.string}]" # Fallback to original string
 
             task_line = f" - {task.content}{due_str}"
@@ -82,12 +84,13 @@ class TodoistManager:
                         inner_type = eval(inner_type_repr, globals(), locals())
                         inner_type_name = getattr(inner_type, '__name__', inner_type_repr)
                         type_name = f"{inner_type_name} | None"
-                    except Exception: # Fallback if eval fails or inner type has no __name__
+                    except Exception as eval_err: # Fallback if eval fails or inner type has no __name__
+                        logger.warning(f"Could not eval inner type '{inner_type_repr}' for Optional hint: {eval_err}")
                         type_name = f"{inner_type_repr} | None"
 
                 result.append(f"    {name}: {type_name}")
         except Exception as e:
-            print(f"Could not inspect {cls.__name__} fields: {e}")
+            logger.error(f"Could not inspect {cls.__name__} fields: {e}")
         return result
 
     def get_code_info(self):

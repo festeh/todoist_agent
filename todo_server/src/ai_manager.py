@@ -1,6 +1,7 @@
 import os
 from typing import final
 from dotenv import load_dotenv
+from loguru import logger
 from openai import OpenAI
 from datetime import datetime
 from openai.types.chat import ChatCompletionMessageParam
@@ -13,6 +14,7 @@ class AiManager:
     def __init__(self):
         api_key = os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
+            logger.error("OPENROUTER_API_KEY environment variable not set.")
             raise ValueError("OPENROUTER_API_KEY environment variable not set.")
         self.client: OpenAI = OpenAI(
             base_url="https://openrouter.ai/api/v1",
@@ -44,7 +46,7 @@ class AiManager:
             models[0] = model_override
         for model in models:
             try:
-                print(f"Trying model: {model}")
+                logger.info(f"Trying model: {model}")
                 extra_body = None
                 if model == "meta-llama/llama-4-maverick":
                     extra_body = {"provider": {"order": ["Fireworks"]}}
@@ -71,11 +73,12 @@ class AiManager:
                 )
                 completion = response.choices[0].message.content
                 assert isinstance(completion, str)
-                print("Got completion", completion)
+                logger.info(f"Got completion from {model}")
                 return completion
             except Exception as e:
-                print(f"Error calling AI: {e}")
+                logger.warning(f"Error calling AI model {model}: {e}")
                 continue
+        logger.error("Could not get response from any AI model after trying all fallbacks.")
         raise Exception("Could not call AI")
 
     def get_code_system_prompt(self, tasks: str, code_info: str):

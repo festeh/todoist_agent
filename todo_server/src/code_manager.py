@@ -1,6 +1,7 @@
 import io
 import contextlib
 import datetime
+from loguru import logger
 from src.todoist_manager import TodoistManager
 
 
@@ -17,12 +18,12 @@ class CodeManager:
             with contextlib.redirect_stdout(stdout_capture):
                 exec(code, execution_scope, execution_scope)
             captured_output = stdout_capture.getvalue().strip()
-            captured_output = f"Successfully executed code:\n {captured_output}".strip()
-            print(captured_output)
-            return captured_output
+            result_message = f"Successfully executed code:\n {captured_output}".strip()
+            logger.info(result_message)
+            return result_message
 
         except Exception as e:
-            captured_output = stdout_capture.getvalue()
-            result = f"Error executing code: {e}\n stdout: {captured_output}"
-            print(result)
-            return result
+            captured_output = stdout_capture.getvalue().strip()
+            error_message = f"Error executing code: {e}\nstdout: {captured_output}"
+            logger.error(error_message)
+            return error_message
