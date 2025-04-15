@@ -23,7 +23,17 @@ _ = load_dotenv()
 
 TODOIST_AGENT_ACCESS_KEY = os.getenv("TODOIST_AGENT_ACCESS_KEY")
 if not TODOIST_AGENT_ACCESS_KEY:
+    logger.error("TODOIST_AGENT_ACCESS_KEY environment variable not set.")
     raise ValueError("TODOIST_AGENT_ACCESS_KEY environment variable not set.")
+
+
+# Configure Loguru logger
+logger.remove() # Remove default handler
+logger.add(
+    sys.stderr,
+    format="{time:YYYY-MM-DD HH:mm:ss.S} | {level: <8} | {name}:{function}:{line} - {message}",
+    level="DEBUG" # Set the desired log level
+)
 
 
 class MessageType(StrEnum):
@@ -171,6 +181,7 @@ async def websocket_endpoint(websocket: WebSocket):
                             manager.fetch_tasks()
                             await manager.exec_flow(json_data["message"])
                     except json.JSONDecodeError:
+                        logger.warning(f"Received invalid JSON data: {data}")
                         await websocket.send_text("Error: Invalid JSON data.")
                         continue
 
@@ -179,4 +190,4 @@ async def websocket_endpoint(websocket: WebSocket):
                 manager.add_chunk(audio_chunk)
 
     except WebSocketDisconnect:
-        print(f"Client {websocket.client} disconnected")
+        logger.info(f"Client {websocket.client} disconnected")
