@@ -25,9 +25,12 @@ class TodoistManager:
         tasks_coro = self._todoist.get_tasks()
         projects_coro = self._todoist.get_projects()
         tasks, projects_generator = await asyncio.gather(tasks_coro, projects_coro)
-
-        # Consume the async generator to get a list of projects
-        projects = [project async for project in projects_generator]
+        projects = [
+            project
+            async for project_page in projects_generator
+            for project in project_page
+        ]
+        tasks = [task async for task_page in tasks for task in task_page]
 
         project_map: dict[str, str] = {project.id: project.name for project in projects}
 
@@ -40,16 +43,16 @@ class TodoistManager:
                 tasks_by_project[project_id] = []
 
             due_str = ""
-            if task.due and task.due.date:
+            if task.due:
+                due = task.due.date
                 try:
-                    due_date = datetime.strptime(task.due.date, "%Y-%m-%d").date()
-                    if due_date == today:
+                    if due == today:
                         due_str = " [today]"
                     else:
-                        due_str = f" [{due_date.strftime('%d %b %Y')}]"
+                        due_str = f" [{due.strftime('%d %b %Y')}]"
                 except ValueError:
                     logger.warning(
-                        f"Failed to parse due date '{task.due.date}' for task '{task.content}'. Using original string."
+                        f"Failed to parse due date '{date}' for task '{task.content}'. Using original string."
                     )
                     due_str = f" [{task.due.string}]"  # Fallback to original string
 
