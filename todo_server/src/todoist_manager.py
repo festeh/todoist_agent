@@ -111,13 +111,25 @@ class TodoistManager:
             attribute = getattr(client, method)
             if inspect.isfunction(attribute):
                 source = inspect.getsource(attribute)
-                first_line = source.split("\n")[0]
-                arrow_index = first_line.find("->")
-                if arrow_index != -1:
-                    signature = first_line[:arrow_index].strip()
+                lines = source.splitlines()
+                last_arrow_line_index = -1
+                for i in range(len(lines) - 1, -1, -1):
+                    if "->" in lines[i]:
+                        last_arrow_line_index = i
+                        break
+
+                if last_arrow_line_index != -1:
+                    # Keep lines up to and including the one with '->'
+                    signature_lines = lines[: last_arrow_line_index + 1]
+                    # Optional: Clean up the last line by removing everything after '->'
+                    # last_line = signature_lines[-1]
+                    # arrow_pos = last_line.find("->")
+                    # signature_lines[-1] = last_line[:arrow_pos].rstrip()
+                    signature = "\n".join(signature_lines)
                 else:
-                    # Fallback if no return type annotation arrow is found
-                    signature = first_line.strip(":")
+                    # Fallback: Use the first line, strip trailing colon
+                    signature = lines[0].strip().rstrip(":")
+
                 result.append(signature)
 
         # Add info for relevant model classes
