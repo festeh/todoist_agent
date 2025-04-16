@@ -111,7 +111,13 @@ class TodoistManager:
             attribute = getattr(client, method)
             if inspect.isfunction(attribute):
                 source = inspect.getsource(attribute)
-                signature = source.split("\n")[0].strip(":")
+                first_line = source.split("\n")[0]
+                arrow_index = first_line.find("->")
+                if arrow_index != -1:
+                    signature = first_line[:arrow_index].strip()
+                else:
+                    # Fallback if no return type annotation arrow is found
+                    signature = first_line.strip(":")
                 result.append(signature)
 
         # Add info for relevant model classes
