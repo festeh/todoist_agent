@@ -117,9 +117,7 @@ class TodoistManager:
                     if "->" in lines[i]:
                         last_arrow_line_index = i
                         break
-
                 if last_arrow_line_index != -1:
-                    # Keep lines up to and including the one with '->'
                     signature_lines = lines[: last_arrow_line_index + 1]
                     # Optional: Clean up the last line by removing everything after '->'
                     # last_line = signature_lines[-1]
