@@ -13,7 +13,7 @@ class CodeManager:
     def execute(self, code: str) -> str:
         stdout_capture = io.StringIO()
         try:
-            execution_scope = {"client": self._client, "datetime": datetime}
+            execution_scope = {"client": self._client}
 
             with contextlib.redirect_stdout(stdout_capture):
                 exec(code, execution_scope, execution_scope)

@@ -54,6 +54,10 @@ class AiManager:
                     extra_body = {
                         "provider": {"order": ["Lambda", "Together", "Fireworks"]}
                     }
+                if model == "deepseek/deepseek-chat-v3-0324":
+                    extra_body = {
+                        "provider": {"order": ["Lambda", "Novita", "DeepInfra"]}
+                    }
                 if history is None:
                     history = []
                 messages: list[ChatCompletionMessageParam] = [
@@ -74,7 +78,7 @@ class AiManager:
                 completion = response.choices[0].message.content
                 assert isinstance(completion, str)
                 logger.info(f"Got completion from {model}")
-                return completion
+                return completion.strip()
             except Exception as e:
                 logger.warning(f"Error calling AI model {model}: {e}")
                 continue
@@ -90,7 +94,10 @@ exists object `client = TodoistAPI`
 <info>
 
 <code>
-Here's some info about types and methods in Todoist 
+Here's specification about methods in Todoist API
+ALWAYS make sure your code correctly uses it's methods and parameters, do not invent your own interface
+Never use "query" parameter in `filter_tasks`, prefer to get all task and write list comprehension
+Notice that get_tasks returns Iterator[list[Task]], so you have to convert it to list and then flatten
 {code_info}
 </code>
 
@@ -126,14 +133,17 @@ Always print() the answer of interest
         completion = self._call_ai(
             prompt,
             user_request,
-            # model_override="anthropic/claude-3.7-sonnet"
+            # model_override="anthropic/claude-3.7-sonnet",
             model_override="qwen/qwen-2.5-coder-32b-instruct",
+            # model_override="deepseek/deepseek-chat-v3-0324",
             history=history,
         )
-        if completion.startswith("```") and completion.endswith("```"):
-            completion = completion[3:-3]
+        if completion.startswith("```"):
+            completion = completion[3:]
         if completion.startswith("python"):
             completion = completion[6:]
+        if completion.endswith("```"):
+            completion = completion[:-3]
         completion = completion.replace("<|python_end|>", "")
         return completion.strip()
 

@@ -7,7 +7,7 @@ from datetime import date, datetime
 import inspect
 from loguru import logger
 
-from todoist_api_python.models import Due, Task, Project, Label
+from todoist_api_python.models import ApiDue, Due, Task, Project, Label
 
 _ = load_dotenv()
 
@@ -103,7 +103,15 @@ class TodoistManager:
 
     def get_code_info(self):
         client = TodoistAPI
-        ignore = ["__init__", "__exit__", "__enter__", "get_collaborators"]
+        ignore = [
+            "__init__",
+            "__exit__",
+            "__enter__",
+            "get_collaborators",
+            "add_task_quick",
+            "get_shared_labels",
+            "remove_shared_label",
+        ]
         result = ["class TodoistAPI:"]
         for method in dir(client):
             if method in ignore:
@@ -119,20 +127,27 @@ class TodoistManager:
                         break
                 if last_arrow_line_index != -1:
                     signature_lines = lines[: last_arrow_line_index + 1]
-                    # Optional: Clean up the last line by removing everything after '->'
-                    # last_line = signature_lines[-1]
-                    # arrow_pos = last_line.find("->")
-                    # signature_lines[-1] = last_line[:arrow_pos].rstrip()
                     signature = "\n".join(signature_lines)
                 else:
                     # Fallback: Use the first line, strip trailing colon
                     signature = lines[0].strip().rstrip(":")
 
-                result.append(signature)
+                result.append(signature.rstrip(":"))
+                result.append("")
 
         # Add info for relevant model classes
         for model_cls in [Task, Project, Label, Due]:
             result.append("")
             result.extend(self._get_class_fields_info(model_cls))
         logger.info("Collected code context")
+        result.append(
+            """
+class Due:
+    date: datetime.date
+    string: str
+    lang: str = "en"
+    is_recurring: bool = False
+    timezone: str | None = None
+]"""
+        )
         return "\n".join(result)
