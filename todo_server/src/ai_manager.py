@@ -112,10 +112,12 @@ Today is {datetime.now().strftime("%d %b %Y %H:%M")}
 Output ONLY Python code, that will be directly executed in Python environment
 Do not care about commenting code
 You should use client:TasksAPI to work with Tasks API, that is already presented
-You can also use standard Python libraries
-Try to minimize code length
-Do NOT define new functions
-DO NOT use if __name__ == "__main__"
+Try to minimize code length and number of api calls
+Don't define new functions
+Don't use if __name__ == "__main__"
+Don't forget to add `from datetime import ...` if you need to use this module
+do not call date
+You can also import and use standard Python libraries
 Each line you output MUST be a valid Python code
 Always print() the answer of interest
 </constraints>
@@ -148,12 +150,13 @@ Always print() the answer of interest
     def get_answer_ai_response(self, task: str, code: str, output: str, history=None) -> str:
         prompt = """<info>
 You are given users' request, Python code and result of it's execution (stdout code output)
-Your goal is to briefly summarize code and it's execution result and provide answer to user
+If code executed successfully, you should describe the result of it's execution, do not describe code in this case
+If it failed, you should explain why
 </info>
 
 <constraints>
 In answer try to focus on details that matter for user, like was result successful or not or what was done
-Always describe code output - it's the most important part to user, but do not read project IDs
+Always describe code output - it's the most important part to user, but do not read project or task IDs
 Try to fit the answer in one-two sentences when possible
 Output response in Russian language
 </constraints>

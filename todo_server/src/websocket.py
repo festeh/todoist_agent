@@ -3,7 +3,7 @@ WebSocket endpoint logic for handling real-time communication,
 including text messages and chunked audio data transfer.
 """
 
-import asyncio # Add this import
+import asyncio  # Add this import
 import json
 import os
 import sys
@@ -69,18 +69,26 @@ class WebsocketManager:
         log_message_preview = message[:100] + "..." if len(message) > 100 else message
         logger.debug(f"Preparing to send {message_type} message: {log_message_preview}")
         await self.ws.send_text(json.dumps({"type": message_type, "message": message}))
-        logger.info(f"Sent {message_type} message (awaited)") # Log after await completes
+        logger.info(
+            f"Sent {message_type} message (awaited)"
+        )  # Log after await completes
 
     async def send_bytes(self, message_type: MessageType, message: bytes):
-        logger.debug(f"Preparing to send {message_type} bytes ({len(message)} bytes)...")
+        logger.debug(
+            f"Preparing to send {message_type} bytes ({len(message)} bytes)..."
+        )
         if len(message) == 0:
             logger.warning(f"Received empty {message_type} message.")
             await self.send_message(MessageType.ERROR, "Received empty bytes message.")
             logger.warning(f"Attempted to send empty {message_type} message.")
-            await self.send_message(MessageType.ERROR, "Attempted to send empty bytes message.")
+            await self.send_message(
+                MessageType.ERROR, "Attempted to send empty bytes message."
+            )
             return
         await self.ws.send_bytes(message)
-        logger.info(f"Sent {message_type} message: {len(message)} bytes (awaited).") # Log after await completes
+        logger.info(
+            f"Sent {message_type} message: {len(message)} bytes (awaited)."
+        )  # Log after await completes
 
     def fetch_tasks(self):
         self.todoist_coro = self.todoist_manager.get_tasks()
@@ -134,23 +142,22 @@ class WebsocketManager:
             tasks, code_info, self.transcription, self.history
         )
         await self.send_message(MessageType.CODE, code)
-        await asyncio.sleep(0.05) # Small delay experiment
+        await asyncio.sleep(0.0)
 
         logger.debug("Executing code...")
         exec_result = self.code_manager.execute(code)
         logger.debug(f"Code execution finished.")
         await self.send_message(MessageType.INFO, exec_result)
-        await asyncio.sleep(0.05) # Small delay experiment
+        await asyncio.sleep(0.0)
 
         answer = self.ai_manager.get_answer_ai_response(
             tasks, code, exec_result, self.history
         )
         await self.send_message(MessageType.ANSWER, answer)
-        await asyncio.sleep(0.05) # Small delay experiment
+        await asyncio.sleep(0.0)
 
         audio = self.tts_manager.text_to_speech(answer)
         await self.send_bytes(MessageType.AI_SPEECH, audio)
-        # No sleep after last send
 
         self.update_history(code, exec_result, answer)
 

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import final
 from dotenv import load_dotenv
 import os
@@ -23,7 +23,8 @@ class Task:
     content: str
     project_id: str
     priority: int
-    due: date | None
+    due_date: date | None
+    due_datetime: datetime | None
 
 
 @dataclass
@@ -85,11 +86,16 @@ class TaskClient:
         self,
         content: str,
         project_id: str | None = None,
-        due: date | None = None,
+        due_date: date | None = None,
+        due_datetime: datetime | None = None,
         priority: int | None = None,
     ) -> Task:
         task = self.todoist.add_task(
-            content, project_id=project_id, due_date=due, priority=priority
+            content,
+            project_id=project_id,
+            due_date=due_date,
+            due_datetime=due_datetime,
+            priority=priority,
         )
         return Task(
             id=task.id,
