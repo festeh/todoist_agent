@@ -52,7 +52,7 @@ class WebSocketManager {
       _channel = await WebSocket.connect(_url, headers: headers);
 
       _updateStatus(ConnectionStatus.connected);
-      debugPrint('WebSocket connected to $_url');
+      log('WebSocket connected to $_url');
 
       _channel?.add("INIT");
 
@@ -60,7 +60,7 @@ class WebSocketManager {
       _channelSubscription = _channel!.listen(
         (message) {
           if (message is Uint8List) {
-            debugPrint(
+            log(
               'Received binary data (assuming MP3), length: ${message.length}',
             );
             _audioController.add(message);
@@ -71,11 +71,11 @@ class WebSocketManager {
                 _messageController.add(decoded['message']);
               }
             } catch (e) {
-              debugPrint('Error decoding JSON message: $e');
+              log('Error decoding JSON message: $e');
             }
           } else {
             // Handle other unexpected message types
-            debugPrint(
+            log(
               'Received unexpected message type: ${message.runtimeType}',
             );
           }
@@ -83,11 +83,11 @@ class WebSocketManager {
         onError: (error) {
           _updateError('WebSocket error: $error');
           _updateStatus(ConnectionStatus.error);
-          debugPrint('WebSocket error: $error');
+          log('WebSocket error: $error');
         },
         onDone: () {
           _updateStatus(ConnectionStatus.disconnected);
-          debugPrint('WebSocket connection closed by server.');
+          log('WebSocket connection closed by server.');
           _channel = null;
           _channelSubscription?.cancel();
           _channelSubscription = null;
@@ -97,7 +97,7 @@ class WebSocketManager {
     } catch (e) {
       _updateError('Failed to connect to WebSocket: $e');
       _updateStatus(ConnectionStatus.error);
-      debugPrint('WebSocket connection failed: $e');
+      log('WebSocket connection failed: $e');
     }
   }
 
@@ -107,7 +107,7 @@ class WebSocketManager {
     await _channel?.close();
     _channel = null;
     _updateStatus(ConnectionStatus.disconnected);
-    debugPrint('WebSocket disconnected.');
+    log('WebSocket disconnected.');
   }
 
   bool send(dynamic data) {
@@ -126,44 +126,44 @@ class WebSocketManager {
 
   Future<bool> sendAudio(Uint8List audioBytes) async {
     if (_status != ConnectionStatus.connected) {
-      debugPrint('WebSocket not connected. Cannot send audio.');
+      log('WebSocket not connected. Cannot send audio.');
       _updateError('Attempted to send audio while disconnected.');
       return false;
     }
 
     try {
       _channel?.add("START_AUDIO");
-      debugPrint('Sent START_AUDIO marker.');
+      log('Sent START_AUDIO marker.');
 
       _channel?.add(audioBytes);
 
       _channel?.add("END_AUDIO");
-      debugPrint('Sent END_AUDIO marker.');
+      log('Sent END_AUDIO marker.');
 
       return true;
     } catch (e) {
       final errorMessage = 'Failed during audio send process: $e';
       _updateError(errorMessage);
-      debugPrint(errorMessage);
+      log(errorMessage);
       return false;
     }
   }
 
   Future<bool> sendTranscription(String text) async {
     if (_status != ConnectionStatus.connected) {
-      debugPrint('WebSocket not connected. Cannot send text.');
+      log('WebSocket not connected. Cannot send text.');
       _updateError('Attempted to send text while disconnected.');
       return false;
     }
 
     try {
       _channel?.add(jsonEncode({'type': 'transcription', 'message': text}));
-      debugPrint('Sent transcription: $text');
+      log('Sent transcription: $text');
       return true;
     } catch (e) {
       final errorMessage = 'Failed during text send process: $e';
       _updateError(errorMessage);
-      debugPrint(errorMessage);
+      log(errorMessage);
       return false;
     }
   }
