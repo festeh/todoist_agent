@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'audio_recorder.dart';
 import 'websocket_manager.dart';
 import 'message_list_view.dart';
+import 'logger.dart';
 
 class AiFlow extends StatefulWidget {
   final String? initialText;
@@ -82,7 +83,7 @@ class _AiFlowState extends State<AiFlow> {
     _webSocketManager.onStatusChange.listen((status) {
       if (!mounted) return;
       setState(() {
-        debugPrint('WebSocket status changed: $status');
+        log('WebSocket status changed: $status');
         _connectionStatus = status;
 
         if (status == ConnectionStatus.connected &&
@@ -96,7 +97,7 @@ class _AiFlowState extends State<AiFlow> {
       if (!mounted) return;
       setState(() {
         _receivedMessages.add(message);
-        debugPrint('UI received ASR message: $message');
+        log('UI received message: $message');
       });
     });
 
@@ -129,7 +130,7 @@ class _AiFlowState extends State<AiFlow> {
     final recordingPath = await _audioRecorderService.stopRecording();
 
     if (recordingPath == null) {
-      debugPrint("stopRecording returned null, cannot proceed.");
+      log("stopRecording returned null, cannot proceed.");
       setState(() {
         _recording = false; // Still update state even if path is null
       });
@@ -141,7 +142,7 @@ class _AiFlowState extends State<AiFlow> {
     if (recorded != null) {
       _webSocketManager.sendAudio(recorded);
     } else {
-      debugPrint("Failed to get recorded bytes after stopping.");
+      log("Failed to get recorded bytes after stopping.");
     }
   }
 
@@ -164,9 +165,9 @@ class _AiFlowState extends State<AiFlow> {
   Future<void> _playAudio(Uint8List audioBytes) async {
     try {
       await _audioPlayer.play(BytesSource(audioBytes));
-      debugPrint("Playing received audio...");
+      log("Playing received audio...");
     } catch (e) {
-      debugPrint("Error playing audio: $e");
+      log("Error playing audio: $e");
     }
   }
 

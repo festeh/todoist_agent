@@ -67,6 +67,7 @@ class WebSocketManager {
             );
             _audioController.add(message);
           } else if (message is String) {
+            log('Received websocket message: $message');
             try {
               final decoded = jsonDecode(message);
               if (decoded.containsKey('message')) {
@@ -76,10 +77,7 @@ class WebSocketManager {
               log('Error decoding JSON message: $e');
             }
           } else {
-            // Handle other unexpected message types
-            log(
-              'Received unexpected message type: ${message.runtimeType}',
-            );
+            log('Received unexpected message type: ${message.runtimeType}');
           }
         },
         onError: (error) {
