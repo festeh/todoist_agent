@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
+import 'logger.dart'; // Import the logger
+
 enum ConnectionStatus { disconnected, connecting, connected, error }
 
 class WebSocketManager {
