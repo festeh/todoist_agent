@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 
 from todoist_api_python.api import TodoistAPI
+import todoist_api_python.models
 
 
 _ = load_dotenv()
@@ -68,19 +69,20 @@ class TaskClient:
     def remove_project(self, id: str) -> bool:
         return self.todoist.delete_project(id)
 
+    def _convert_to_local_task(self, task: TodoistAPI.models.Task) -> Task:
+        """Converts a Todoist API Task object to the local Task dataclass."""
+        return Task(
+            id=task.id,
+            content=task.content,
+            project_id=task.project_id,
+            priority=task.priority,
+            due_date=task.due.date if task.due and isinstance(task.due.date, date) and not isinstance(task.due.date, datetime) else None,
+            due_datetime=task.due.date if task.due and isinstance(task.due.date, datetime) else None,
+        )
+
     def get_tasks(self, project_id: str | None = None) -> list[Task]:
         tasks = self.todoist.get_tasks(project_id=project_id)
-        return [
-            Task(
-                id=task.id,
-                content=task.content,
-                project_id=task.project_id,
-                priority=task.priority,
-                due_date=task.due.date if task.due and isinstance(task.due.date, date) and not isinstance(task.due.date, datetime) else None,
-                due_datetime=task.due.date if task.due and isinstance(task.due.date, datetime) else None,
-            )
-            for task in tasks
-        ]
+        return [self._convert_to_local_task(task) for task in tasks]
 
     def add_task(
         self,
@@ -97,14 +99,7 @@ class TaskClient:
             due_datetime=due_datetime,
             priority=priority,
         )
-        return Task(
-            id=task.id,
-            content=task.content,
-            project_id=task.project_id,
-            priority=task.priority,
-            due_date=task.due.date if task.due and isinstance(task.due.date, date) and not isinstance(task.due.date, datetime) else None,
-            due_datetime=task.due.date if task.due and isinstance(task.due.date, datetime) else None,
-        )
+        return self._convert_to_local_task(task)
 
     def complete_task(self, task_id: str) -> bool:
         return self.todoist.complete_task(task_id)
