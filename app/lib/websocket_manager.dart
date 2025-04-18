@@ -61,13 +61,15 @@ class WebSocketManager {
       // Listen for messages, errors, and closure
       _channelSubscription = _channel!.listen(
         (message) {
+          // Log raw message arrival immediately
+          log('Raw WebSocket data received. Type: ${message.runtimeType}');
           if (message is Uint8List) {
             log(
-              'Received binary data (assuming MP3), length: ${message.length}',
+              'Processing binary data, length: ${message.length}',
             );
             _audioController.add(message);
           } else if (message is String) {
-            log('Received websocket message: $message');
+            log('Processing text message: $message'); // Renamed log for clarity
             try {
               final decoded = jsonDecode(message);
               if (decoded.containsKey('message')) {
