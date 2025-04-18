@@ -76,10 +76,10 @@ class TaskClient:
                 content=task.content,
                 project_id=task.project_id,
                 priority=task.priority,
-                due=None if task.due is None else task.due.date,
+                due_date=task.due.date if task.due and isinstance(task.due.date, date) and not isinstance(task.due.date, datetime) else None,
+                due_datetime=task.due.date if task.due and isinstance(task.due.date, datetime) else None,
             )
-            for task_page in tasks
-            for task in task_page
+            for task in tasks
         ]
 
     def add_task(
@@ -102,7 +102,8 @@ class TaskClient:
             content=task.content,
             project_id=task.project_id,
             priority=task.priority,
-            due=None if task.due is None else task.due.date,
+            due_date=task.due.date if task.due and isinstance(task.due.date, date) and not isinstance(task.due.date, datetime) else None,
+            due_datetime=task.due.date if task.due and isinstance(task.due.date, datetime) else None,
         )
 
     def complete_task(self, task_id: str) -> bool:
