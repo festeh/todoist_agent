@@ -2,13 +2,12 @@ import io
 import contextlib
 import datetime
 from loguru import logger
-from src.todoist_manager import TodoistManager
+from src.task_client import TaskClient
 
 
 class CodeManager:
     def __init__(self):
-        manager = TodoistManager(use_async=False)
-        self._client = manager._todoist_sync
+        self._client = TaskClient()
 
     def execute(self, code: str) -> str:
         stdout_capture = io.StringIO()

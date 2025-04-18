@@ -87,17 +87,15 @@ class AiManager:
 
     def get_code_system_prompt(self, tasks: str, code_info: str):
         prompt = f"""<info>
-You are programming agent that works with Todoist API.
+You are programming agent that works with Tasks API.
 Your goal is to read user's request (that can be in Russian)
 and generate a Python script. You can assume that in enviroment
-exists object `client = TodoistAPI`
+exists object `client = TasksAPI`
 <info>
 
 <code>
-Here's specification about methods in Todoist API
+Here's specification about methods in Tasks API
 ALWAYS make sure your code correctly uses it's methods and parameters, do not invent your own interface
-Never use "query" parameter in `filter_tasks`, prefer to get all task and write list comprehension
-Notice that get_tasks returns Iterator[list[Task]], so you have to convert it to list and then flatten
 {code_info}
 </code>
 
@@ -113,7 +111,7 @@ Today is {datetime.now().strftime("%d %b %Y %H:%M")}
 <constraints>
 Output ONLY Python code, that will be directly executed in Python environment
 Do not care about commenting code
-You should use client:TodoistAPI to work with Todoist API, that is already presented
+You should use client:TasksAPI to work with Tasks API, that is already presented
 You can also use standard Python libraries
 Try to minimize code length
 Do NOT define new functions

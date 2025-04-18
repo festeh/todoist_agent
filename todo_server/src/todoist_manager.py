@@ -7,7 +7,7 @@ from datetime import date, datetime
 import inspect
 from loguru import logger
 
-from todoist_api_python.models import ApiDue, Due, Task, Project, Label
+from src.task_client import TaskClient, Task, Project
 
 _ = load_dotenv()
 
@@ -102,17 +102,13 @@ class TodoistManager:
         return result
 
     def get_code_info(self):
-        client = TodoistAPI
+        client = TaskClient
         ignore = [
             "__init__",
             "__exit__",
             "__enter__",
-            "get_collaborators",
-            "add_task_quick",
-            "get_shared_labels",
-            "remove_shared_label",
         ]
-        result = ["class TodoistAPI:"]
+        result = ["class TasksAPI:"]
         for method in dir(client):
             if method in ignore:
                 continue
@@ -136,18 +132,8 @@ class TodoistManager:
                 result.append("")
 
         # Add info for relevant model classes
-        for model_cls in [Task, Project, Label, Due]:
+        for model_cls in [Task, Project]:
             result.append("")
             result.extend(self._get_class_fields_info(model_cls))
         logger.info("Collected code context")
-        result.append(
-            """
-class Due:
-    date: datetime.date
-    string: str
-    lang: str = "en"
-    is_recurring: bool = False
-    timezone: str | None = None
-]"""
-        )
         return "\n".join(result)
