@@ -115,8 +115,9 @@ You should use client:TasksAPI to work with Tasks API, that is already presented
 Try to minimize code length and number of api calls
 Don't define new functions
 Don't use if __name__ == "__main__"
-Don't forget to add `from datetime import ...` if you need to use this module
-do not call date
+Don't forget to add `from datetime import date, datetime` if you need to use this module and classes
+Always find out which type `task.due` has (date or datetime) before working with it
+Do not call due.date() if it might be a `datetime.date` already
 You can also import and use standard Python libraries
 Each line you output MUST be a valid Python code
 Always print() the answer of interest

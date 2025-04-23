@@ -4,9 +4,8 @@ from typing import final
 from dotenv import load_dotenv
 import os
 
+from todoist_api_python.models import Task as TodoistTask
 from todoist_api_python.api import TodoistAPI
-import todoist_api_python.models
-
 
 _ = load_dotenv()
 
@@ -24,8 +23,8 @@ class Task:
     content: str
     project_id: str
     priority: int
-    due_date: date | None
-    due_datetime: datetime | None
+    due: date | datetime | None
+    # due_datetime: datetime | None
 
 
 @dataclass
@@ -69,20 +68,21 @@ class TaskClient:
     def remove_project(self, id: str) -> bool:
         return self.todoist.delete_project(id)
 
-    def _convert_to_local_task(self, task: TodoistAPI.models.Task) -> Task:
+    def _convert_to_local_task(self, task: TodoistTask) -> Task:
         """Converts a Todoist API Task object to the local Task dataclass."""
         return Task(
             id=task.id,
             content=task.content,
             project_id=task.project_id,
             priority=task.priority,
-            due_date=task.due.date if task.due and isinstance(task.due.date, date) and not isinstance(task.due.date, datetime) else None,
-            due_datetime=task.due.date if task.due and isinstance(task.due.date, datetime) else None,
+            due=task.due.date if task.due else None,
+            # due_date=task.due.date if task.due and isinstance(task.due.date, date) and not isinstance(task.due.date, datetime) else None,
+            # due_datetime=task.due.date if task.due and isinstance(task.due.date, datetime) else None,
         )
 
     def get_tasks(self, project_id: str | None = None) -> list[Task]:
         tasks = self.todoist.get_tasks(project_id=project_id)
-        return [self._convert_to_local_task(task) for task in tasks]
+        return [self._convert_to_local_task(task) for task_page in tasks for task in task_page]
 
     def add_task(
         self,
