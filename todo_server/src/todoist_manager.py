@@ -23,7 +23,19 @@ class TodoistManagerSyncEndpoint:
             logger.error("TODOIST_API_KEY environment variable not set.")
             raise ValueError("TODOIST_API_KEY environment variable not set.")
         self._api_token = todoist_api_token
-        self._sync_token = "*"  # Start with full sync
+
+        xdg_data_home = os.getenv("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
+        app_data_dir = os.path.join(xdg_data_home, "todo_server")
+        os.makedirs(app_data_dir, exist_ok=True)
+        self._sync_token_file = os.path.join(app_data_dir, "sync_token")
+
+        try:
+            with open(self._sync_token_file, "r") as f:
+                token = f.read().strip()
+                self._sync_token = token if token else "*"
+        except FileNotFoundError:
+            self._sync_token = "*"  # Start with full sync
+        
         self._sync_url = "https://api.todoist.com/sync/v9/sync"
 
     def _make_sync_request(self, commands: list[dict] = None) -> dict:
@@ -47,6 +59,8 @@ class TodoistManagerSyncEndpoint:
         # Update sync token for incremental syncs
         if "sync_token" in result:
             self._sync_token = result["sync_token"]
+            with open(self._sync_token_file, "w") as f:
+                f.write(self._sync_token)
         
         return result
 
