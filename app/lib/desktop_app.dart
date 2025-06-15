@@ -22,8 +22,8 @@ class PressButtonAction extends Action<PressButtonIntent> {
 }
 
 // Root widget for the standard application
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class DesktopApp extends StatelessWidget {
+  const DesktopApp({super.key});
 
   @override
   Widget build(BuildContext context) {

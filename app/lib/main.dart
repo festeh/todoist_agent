@@ -2,7 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wear/wear.dart';
-import 'standard_app.dart';
+import 'desktop_app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +28,7 @@ void main() async {
     }
   }
 
-  runApp(isWearOS ? const WearOsPlaceholder() : const MyApp());
+  runApp(isWearOS ? const WearOsPlaceholder() : const DesktopApp());
 }
 
 class WearOsPlaceholder extends StatelessWidget {
