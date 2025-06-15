@@ -31,21 +31,21 @@ class DesktopApp extends StatelessWidget {
       theme: darkTheme,
       darkTheme: darkTheme,
       themeMode: ThemeMode.dark,
-      home: const MyHomePage(),
+      home: const Home(),
     );
   }
 }
 
 // Main page widget for the standard application
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class Home extends StatefulWidget {
+  const Home({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<Home> createState() => _HomeState();
 }
 
 // State for the main page
-class _MyHomePageState extends State<MyHomePage> {
+class _HomeState extends State<Home> {
   final TextEditingController _textController = TextEditingController();
 
   // Navigate to AiFlow, starting recording
