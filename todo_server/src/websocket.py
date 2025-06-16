@@ -91,7 +91,7 @@ class WebsocketManager:
         logger.info(f"Sent {message_type} message: {len(message)} bytes (awaited).")
 
     def fetch_todoist_context(self):
-        self.todoist_coro = self.todoist_manager_se.get_data()
+        self.todoist_coro = self.todoist_manager_se.get_context()
         logger.info("Fetching tasks initiated.")
 
     def add_chunk(self, chunk: bytes):
@@ -113,7 +113,7 @@ class WebsocketManager:
         finally:
             self.audio_buffer = bytearray()
 
-    async def todoist_context(self) -> str:
+    async def todoist_context(self) :
         logger.info("Fetching todoist context...")
         if self.todoist_coro is None:
             logger.warning(

@@ -17,6 +17,7 @@ dependencies = [
     "elevenlabs>=1.56.0",
     "fastapi>=0.100.0", # Modern async web framework
     "groq>=0.22.0",
+    "httpx>=0.28.1",
     "loguru>=0.7.3",
     "openai>=1.70.0",
     "todoist-api-python>=3.0.0",

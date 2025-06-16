@@ -18,6 +18,50 @@ from dataclasses import dataclass
 _ = load_dotenv()
 
 
+def format_context(projects: list[Project], tasks: list[Task]) -> str:
+    project_map: dict[str, str] = {project.id: project.name for project in projects}
+
+    tasks_by_project: dict[str, list[str]] = {}
+    today = date.today()
+
+    for task in tasks:
+        project_id = task.project_id
+        if project_id not in tasks_by_project:
+            tasks_by_project[project_id] = []
+
+        due_str = ""
+        if task.due:
+            due = task.due.date
+            try:
+                if due == today:
+                    due_str = " [today]"
+                else:
+                    due_str = f" [{due.strftime('%d %b %Y')}]"
+            except ValueError:
+                logger.warning(
+                    f"Failed to parse due date '{date}' for task '{task.content}'. Using original string."
+                )
+                due_str = f" [{task.due.string}]"  # Fallback to original string
+
+        task_line = f" - {task.content}{due_str}"
+        tasks_by_project[project_id].append(task_line)
+
+    output_lines: list[str] = []
+    # Sort projects by name for consistent output
+    sorted_project_ids = sorted(
+        tasks_by_project.keys(), key=lambda pid: project_map.get(pid, "")
+    )
+
+    for project_id in sorted_project_ids:
+        task_lines = tasks_by_project[project_id]
+        project_name: str = project_map.get(project_id, "Unknown Project")
+        output_lines.append(project_name)
+        # Tasks are already formatted with due dates
+        output_lines.extend(task_lines)
+
+    return "\n".join(output_lines)
+
+
 @dataclass
 class SyncEndpointResponse(JSONPyWizard):
     sync_token: str
@@ -55,19 +99,19 @@ class TodoistManagerSyncEndpoint:
         with open(self._sync_token_file, "w") as f:
             _ = f.write(self._sync_token)
 
-    async def get_data(self) -> SyncEndpointResponse:
+    async def get_context(self) -> str:
         headers = {
             "Authorization": f"Bearer {self._api_token}",
             "Content-Type": "application/x-www-form-urlencoded",
         }
 
-        data = {
+        context = {
             "sync_token": self._sync_token,
             "resource_types": json.dumps(["projects", "items"]),
         }
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(self._sync_url, headers=headers, data=data)
+            response = await client.post(self._sync_url, headers=headers, data=context)
 
         response.raise_for_status()
 
@@ -80,7 +124,9 @@ class TodoistManagerSyncEndpoint:
         result.setdefault("projects", [])
         result.setdefault("items", [])
 
-        return SyncEndpointResponse.from_dict(result)
+        context = SyncEndpointResponse.from_dict(result)
+
+        return format_context(context.projects, context.items)
 
 
 @final
@@ -105,44 +151,4 @@ class TodoistManager:
         ]
         tasks = [task async for task_page in tasks for task in task_page]
 
-        project_map: dict[str, str] = {project.id: project.name for project in projects}
-
-        tasks_by_project: dict[str, list[str]] = {}
-        today = date.today()
-
-        for task in tasks:
-            project_id = task.project_id
-            if project_id not in tasks_by_project:
-                tasks_by_project[project_id] = []
-
-            due_str = ""
-            if task.due:
-                due = task.due.date
-                try:
-                    if due == today:
-                        due_str = " [today]"
-                    else:
-                        due_str = f" [{due.strftime('%d %b %Y')}]"
-                except ValueError:
-                    logger.warning(
-                        f"Failed to parse due date '{date}' for task '{task.content}'. Using original string."
-                    )
-                    due_str = f" [{task.due.string}]"  # Fallback to original string
-
-            task_line = f" - {task.content}{due_str}"
-            tasks_by_project[project_id].append(task_line)
-
-        output_lines: list[str] = []
-        # Sort projects by name for consistent output
-        sorted_project_ids = sorted(
-            tasks_by_project.keys(), key=lambda pid: project_map.get(pid, "")
-        )
-
-        for project_id in sorted_project_ids:
-            task_lines = tasks_by_project[project_id]
-            project_name: str = project_map.get(project_id, "Unknown Project")
-            output_lines.append(project_name)
-            # Tasks are already formatted with due dates
-            output_lines.extend(task_lines)
-
-        return "\n".join(output_lines)
+        return format_context(projects, tasks)
