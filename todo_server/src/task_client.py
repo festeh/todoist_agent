@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import final
 from dotenv import load_dotenv
 import os
+import inspect
 
 from todoist_api_python.models import Task as TodoistTask
 from todoist_api_python.api import TodoistAPI
@@ -82,7 +83,11 @@ class TaskClient:
 
     def get_tasks(self, project_id: str | None = None) -> list[Task]:
         tasks = self.todoist.get_tasks(project_id=project_id)
-        return [self._convert_to_local_task(task) for task_page in tasks for task in task_page]
+        return [
+            self._convert_to_local_task(task)
+            for task_page in tasks
+            for task in task_page
+        ]
 
     def add_task(
         self,
@@ -103,3 +108,67 @@ class TaskClient:
 
     def complete_task(self, task_id: str) -> bool:
         return self.todoist.complete_task(task_id)
+
+    def _get_class_fields_info(self, cls: type) -> list[str]:
+        """Inspects a class and returns a list describing its fields and types."""
+        result = [f"class {cls.__name__}:"]
+        try:
+            annotations = inspect.get_annotations(cls)
+            for name, type_hint in annotations.items():
+                type_name = getattr(type_hint, "__name__", repr(type_hint))
+                # Handle Optional types for better readability
+                if "Optional[" in repr(type_hint):
+                    inner_type_repr = repr(type_hint).split("[", 1)[1].rsplit("]", 1)[0]
+                    try:
+                        inner_type = eval(inner_type_repr, globals(), locals())
+                        inner_type_name = getattr(
+                            inner_type, "__name__", inner_type_repr
+                        )
+                        type_name = f"{inner_type_name} | None"
+                    except Exception as eval_err:  # Fallback if eval fails or inner type has no __name__
+                        logger.warning(
+                            f"Could not eval inner type '{inner_type_repr}' for Optional hint: {eval_err}"
+                        )
+                        type_name = f"{inner_type_repr} | None"
+
+                result.append(f"    {name}: {type_name}")
+        except Exception as e:
+            logger.error(f"Could not inspect {cls.__name__} fields: {e}")
+        return result
+
+    def get_code_info(self):
+        client = TaskClient
+        ignore = [
+            "__init__",
+            "__exit__",
+            "__enter__",
+        ]
+        result = ["class TasksAPI:"]
+        for method in dir(client):
+            if method in ignore:
+                continue
+            attribute = getattr(client, method)
+            if inspect.isfunction(attribute):
+                source = inspect.getsource(attribute)
+                lines = source.splitlines()
+                last_arrow_line_index = -1
+                for i in range(len(lines) - 1, -1, -1):
+                    if "->" in lines[i]:
+                        last_arrow_line_index = i
+                        break
+                if last_arrow_line_index != -1:
+                    signature_lines = lines[: last_arrow_line_index + 1]
+                    signature = "\n".join(signature_lines)
+                else:
+                    # Fallback: Use the first line, strip trailing colon
+                    signature = lines[0].strip().rstrip(":")
+
+                result.append(signature.rstrip(":"))
+                result.append("")
+
+        # Add info for relevant model classes
+        for model_cls in [Task, Project]:
+            result.append("")
+            result.extend(self._get_class_fields_info(model_cls))
+        logger.info("Collected code context")
+        return "\n".join(result)

@@ -1,18 +1,27 @@
 from typing import final
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.api_async import TodoistAPIAsync
+
+from todoist_api_python.models import Task, Project
+
+
 from dotenv import load_dotenv
 import os
 import asyncio
 from datetime import date
-import inspect
 import requests
 import json
 from loguru import logger
-
-from src.task_client import TaskClient, Task, Project
+from dataclasses import dataclass
 
 _ = load_dotenv()
+
+
+@dataclass
+class SyncEndpointResponse:
+    sync_token: str
+    projects: list[Project]
+    items: list[Task]
 
 
 @final
@@ -43,9 +52,9 @@ class TodoistManagerSyncEndpoint:
 
     def _save_sync_token(self):
         with open(self._sync_token_file, "w") as f:
-            f.write(self._sync_token)
+            _ = f.write(self._sync_token)
 
-    def get_data(self) -> dict:
+    def get_data(self) -> SyncEndpointResponse:
         headers = {
             "Authorization": f"Bearer {self._api_token}",
             "Content-Type": "application/x-www-form-urlencoded",
@@ -131,67 +140,3 @@ class TodoistManager:
             output_lines.extend(task_lines)
 
         return "\n".join(output_lines)
-
-    def _get_class_fields_info(self, cls: type) -> list[str]:
-        """Inspects a class and returns a list describing its fields and types."""
-        result = [f"class {cls.__name__}:"]
-        try:
-            annotations = inspect.get_annotations(cls)
-            for name, type_hint in annotations.items():
-                type_name = getattr(type_hint, "__name__", repr(type_hint))
-                # Handle Optional types for better readability
-                if "Optional[" in repr(type_hint):
-                    inner_type_repr = repr(type_hint).split("[", 1)[1].rsplit("]", 1)[0]
-                    try:
-                        inner_type = eval(inner_type_repr, globals(), locals())
-                        inner_type_name = getattr(
-                            inner_type, "__name__", inner_type_repr
-                        )
-                        type_name = f"{inner_type_name} | None"
-                    except Exception as eval_err:  # Fallback if eval fails or inner type has no __name__
-                        logger.warning(
-                            f"Could not eval inner type '{inner_type_repr}' for Optional hint: {eval_err}"
-                        )
-                        type_name = f"{inner_type_repr} | None"
-
-                result.append(f"    {name}: {type_name}")
-        except Exception as e:
-            logger.error(f"Could not inspect {cls.__name__} fields: {e}")
-        return result
-
-    def get_code_info(self):
-        client = TaskClient
-        ignore = [
-            "__init__",
-            "__exit__",
-            "__enter__",
-        ]
-        result = ["class TasksAPI:"]
-        for method in dir(client):
-            if method in ignore:
-                continue
-            attribute = getattr(client, method)
-            if inspect.isfunction(attribute):
-                source = inspect.getsource(attribute)
-                lines = source.splitlines()
-                last_arrow_line_index = -1
-                for i in range(len(lines) - 1, -1, -1):
-                    if "->" in lines[i]:
-                        last_arrow_line_index = i
-                        break
-                if last_arrow_line_index != -1:
-                    signature_lines = lines[: last_arrow_line_index + 1]
-                    signature = "\n".join(signature_lines)
-                else:
-                    # Fallback: Use the first line, strip trailing colon
-                    signature = lines[0].strip().rstrip(":")
-
-                result.append(signature.rstrip(":"))
-                result.append("")
-
-        # Add info for relevant model classes
-        for model_cls in [Task, Project]:
-            result.append("")
-            result.extend(self._get_class_fields_info(model_cls))
-        logger.info("Collected code context")
-        return "\n".join(result)
