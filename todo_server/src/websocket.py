@@ -18,7 +18,7 @@ from src.ai_manager import AiManager
 from src.code_manager import CodeManager
 from src.groq_manager import GroqManager
 from src.task_client import TaskClient
-from src.todoist_manager import TodoistManager
+from src.todoist_manager import TodoistManager, TodoistManagerSyncEndpoint
 from src.tts_manager import TTSManager
 
 _ = load_dotenv()
@@ -51,6 +51,7 @@ class WebsocketManager:
     def __init__(self, ws: WebSocket):
         self.groq_manager = GroqManager()
         self.todoist_manager = TodoistManager()
+        self.todoist_manager_se = TodoistManagerSyncEndpoint()
         self.ai_manager = AiManager()
         self.code_manager = CodeManager()
         self.tts_manager = TTSManager()
@@ -72,9 +73,7 @@ class WebsocketManager:
         log_message_preview = message[:100] + "..." if len(message) > 100 else message
         logger.debug(f"Preparing to send {message_type} message: {log_message_preview}")
         await self.ws.send_text(json.dumps({"type": message_type, "message": message}))
-        logger.info(
-            f"Sent {message_type} message (awaited)"
-        )  # Log after await completes
+        logger.info(f"Sent {message_type} message (awaited)")
 
     async def send_bytes(self, message_type: MessageType, message: bytes):
         logger.debug(
@@ -89,12 +88,10 @@ class WebsocketManager:
             )
             return
         await self.ws.send_bytes(message)
-        logger.info(
-            f"Sent {message_type} message: {len(message)} bytes (awaited)."
-        )  # Log after await completes
+        logger.info(f"Sent {message_type} message: {len(message)} bytes (awaited).")
 
-    def fetch_tasks(self):
-        self.todoist_coro = self.todoist_manager.get_tasks()
+    def fetch_todoist_context(self):
+        self.todoist_coro = self.todoist_manager_se.get_data()
         logger.info("Fetching tasks initiated.")
 
     def add_chunk(self, chunk: bytes):
@@ -116,16 +113,16 @@ class WebsocketManager:
         finally:
             self.audio_buffer = bytearray()
 
-    async def tasks(self) -> str:
-        logger.info("Fetching tasks...")
+    async def todoist_context(self) -> str:
+        logger.info("Fetching todoist context...")
         if self.todoist_coro is None:
             logger.warning(
                 "todoist_coro was None when tasks() was called. Re-fetching."
             )
             self.todoist_coro = self.todoist_manager.get_tasks()
-        tasks = await self.todoist_coro
-        logger.info("Tasks ready")
-        return tasks
+        context = await self.todoist_coro
+        logger.info("Todoist context ready")
+        return context
 
     async def exec_flow(self, transcription: str | None = None):
         if transcription is None:
@@ -139,7 +136,7 @@ class WebsocketManager:
             self.transcription = transcription
         if self.transcription is None:
             return
-        tasks = await self.tasks()
+        tasks = await self.todoist_context()
         code_info = self.task_client.get_code_info()
         code = self.ai_manager.get_code_ai_response(
             tasks, code_info, self.transcription, self.history
@@ -149,7 +146,7 @@ class WebsocketManager:
 
         logger.debug("Executing code...")
         exec_result = self.code_manager.execute(code)
-        logger.debug(f"Code execution finished.")
+        logger.debug("Code execution finished.")
         await self.send_message(MessageType.INFO, exec_result)
         await asyncio.sleep(0.0)
 
@@ -205,7 +202,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 if data == "INIT":
                     manager.reset()
                 elif data == "START_AUDIO":
-                    manager.fetch_tasks()
+                    manager.fetch_todoist_context()
                     await manager.send_message(
                         MessageType.INFO, "Audio transmission started."
                     )
@@ -215,7 +212,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     try:
                         json_data: dict[str, str] = json.loads(data)
                         if json_data.get("type") == MessageType.TRANSCRIPTION:
-                            manager.fetch_tasks()
+                            manager.fetch_todoist_context()
                             await manager.exec_flow(json_data["message"])
                     except json.JSONDecodeError:
                         logger.warning(f"Received invalid JSON data: {data}")
