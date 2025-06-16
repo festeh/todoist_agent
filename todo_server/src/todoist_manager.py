@@ -12,13 +12,14 @@ from datetime import date
 import requests
 import json
 from loguru import logger
+from dataclass_wizard import JSONPyWizard
 from dataclasses import dataclass
 
 _ = load_dotenv()
 
 
 @dataclass
-class SyncEndpointResponse:
+class SyncEndpointResponse(JSONPyWizard):
     sync_token: str
     projects: list[Project]
     items: list[Task]
@@ -74,7 +75,10 @@ class TodoistManagerSyncEndpoint:
             self._sync_token = result["sync_token"]
             self._save_sync_token()
 
-        return result
+        result.setdefault("projects", [])
+        result.setdefault("items", [])
+
+        return SyncEndpointResponse.from_dict(result)
 
 
 @final
