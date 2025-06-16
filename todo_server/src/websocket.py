@@ -17,6 +17,7 @@ from openai.types.chat import ChatCompletionMessageParam
 from src.ai_manager import AiManager
 from src.code_manager import CodeManager
 from src.groq_manager import GroqManager
+from src.task_client import TaskClient
 from src.todoist_manager import TodoistManager
 from src.tts_manager import TTSManager
 
@@ -53,6 +54,8 @@ class WebsocketManager:
         self.ai_manager = AiManager()
         self.code_manager = CodeManager()
         self.tts_manager = TTSManager()
+
+        self.task_client = TaskClient()
         self.ws = ws
 
         self.reset()
@@ -137,7 +140,7 @@ class WebsocketManager:
         if self.transcription is None:
             return
         tasks = await self.tasks()
-        code_info = self.todoist_manager.get_code_info()
+        code_info = self.task_client.get_code_info()
         code = self.ai_manager.get_code_ai_response(
             tasks, code_info, self.transcription, self.history
         )
@@ -157,7 +160,8 @@ class WebsocketManager:
         await asyncio.sleep(0.0)
 
         audio = self.tts_manager.text_to_speech(answer)
-        await self.send_bytes(MessageType.AI_SPEECH, audio)
+        if audio:
+            await self.send_bytes(MessageType.AI_SPEECH, audio)
 
         self.update_history(code, exec_result, answer)
 

@@ -3,6 +3,7 @@ from datetime import date, datetime
 from typing import final
 from dotenv import load_dotenv
 import os
+from loguru import logger
 import inspect
 
 from todoist_api_python.models import Task as TodoistTask
@@ -110,7 +111,6 @@ class TaskClient:
         return self.todoist.complete_task(task_id)
 
     def _get_class_fields_info(self, cls: type) -> list[str]:
-        """Inspects a class and returns a list describing its fields and types."""
         result = [f"class {cls.__name__}:"]
         try:
             annotations = inspect.get_annotations(cls)
@@ -142,6 +142,8 @@ class TaskClient:
             "__init__",
             "__exit__",
             "__enter__",
+            "get_code_info",
+            "__get_class_fields_info",
         ]
         result = ["class TasksAPI:"]
         for method in dir(client):

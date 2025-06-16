@@ -1,4 +1,4 @@
-from typing import final
+from typing import Any, final
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.api_async import TodoistAPIAsync
 
@@ -49,7 +49,7 @@ class TodoistManagerSyncEndpoint:
                 token = f.read().strip()
                 self._sync_token = token if token else "*"
         except FileNotFoundError:
-            self._sync_token = "*"  # Start with full sync
+            self._sync_token: str = "*"  # Start with full sync
 
     def _save_sync_token(self):
         with open(self._sync_token_file, "w") as f:
@@ -69,7 +69,7 @@ class TodoistManagerSyncEndpoint:
         response = requests.post(self._sync_url, headers=headers, data=data)
         response.raise_for_status()
 
-        result = response.json()
+        result: dict[str, Any] = response.json()
 
         if "sync_token" in result:
             self._sync_token = result["sync_token"]
@@ -130,7 +130,7 @@ class TodoistManager:
             task_line = f" - {task.content}{due_str}"
             tasks_by_project[project_id].append(task_line)
 
-        output_lines = []
+        output_lines: list[str] = []
         # Sort projects by name for consistent output
         sorted_project_ids = sorted(
             tasks_by_project.keys(), key=lambda pid: project_map.get(pid, "")
@@ -138,7 +138,7 @@ class TodoistManager:
 
         for project_id in sorted_project_ids:
             task_lines = tasks_by_project[project_id]
-            project_name = project_map.get(project_id, "Unknown Project")
+            project_name: str = project_map.get(project_id, "Unknown Project")
             output_lines.append(project_name)
             # Tasks are already formatted with due dates
             output_lines.extend(task_lines)
