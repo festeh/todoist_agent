@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import os
 import asyncio
 from datetime import date
-import requests
+import httpx
 import json
 from loguru import logger
 from dataclass_wizard import JSONPyWizard
@@ -55,7 +55,7 @@ class TodoistManagerSyncEndpoint:
         with open(self._sync_token_file, "w") as f:
             _ = f.write(self._sync_token)
 
-    def get_data(self) -> SyncEndpointResponse:
+    async def get_data(self) -> SyncEndpointResponse:
         headers = {
             "Authorization": f"Bearer {self._api_token}",
             "Content-Type": "application/x-www-form-urlencoded",
@@ -66,7 +66,9 @@ class TodoistManagerSyncEndpoint:
             "resource_types": json.dumps(["projects", "items"]),
         }
 
-        response = requests.post(self._sync_url, headers=headers, data=data)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(self._sync_url, headers=headers, data=data)
+
         response.raise_for_status()
 
         result: dict[str, Any] = response.json()
