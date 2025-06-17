@@ -165,10 +165,6 @@ class _AiFlowState extends State<AiFlow> {
   }
 
   Future<void> _playAudio(Uint8List audioBytes) async {
-    if (widget.isMuted) {
-      log("Audio is muted. Skipping playback.");
-      return;
-    }
     try {
       await _audioPlayer.play(BytesSource(audioBytes));
       log("Playing received audio...");

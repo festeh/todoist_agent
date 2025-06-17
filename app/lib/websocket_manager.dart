@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 
-import 'logger.dart'; // Import the logger
+import 'logger.dart';
 
 enum ConnectionStatus { disconnected, connecting, connected, error }
 
@@ -64,9 +64,7 @@ class WebSocketManager {
           // Log raw message arrival immediately
           log('Raw WebSocket data received. Type: ${message.runtimeType}');
           if (message is Uint8List) {
-            log(
-              'Processing binary data, length: ${message.length}',
-            );
+            log('Processing binary data, length: ${message.length}');
             _audioController.add(message);
           } else if (message is String) {
             log('Processing text message: $message'); // Renamed log for clarity
