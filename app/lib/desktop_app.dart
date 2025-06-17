@@ -48,7 +48,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final TextEditingController _textController = TextEditingController();
 
-  // Navigate to AiFlow, starting recording
   void _navigateToAiFlowRecording() {
     Navigator.push(
       context,
@@ -58,9 +57,8 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // Navigate to AiFlow with initial text, not starting recording
   void _navigateToAiFlowWithText(String text) {
-    if (text.trim().isEmpty) return; // Don't navigate with empty text
+    if (text.trim().isEmpty) return;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -68,7 +66,7 @@ class _HomeState extends State<Home> {
             (context) => AiFlow(initialText: text, startRecordingOnInit: false),
       ),
     );
-    _textController.clear(); 
+    _textController.clear();
   }
 
   @override
@@ -80,12 +78,8 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final scaffold = Scaffold(
-      appBar: AppBar(
-        title: const Center(child: Text("Todoist Agent")), 
-      ),
-      body: const Center(
-        child: Text(""),
-      ),
+      appBar: AppBar(title: const Center(child: Text("Todoist Agent"))),
+      body: const Center(child: Text("")),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
