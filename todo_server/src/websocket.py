@@ -48,7 +48,8 @@ class MessageType(StrEnum):
 
 @final
 class WebsocketManager:
-    def __init__(self, ws: WebSocket):
+    def __init__(self, ws: WebSocket, is_muted: bool = False):
+        self.is_muted = is_muted
         self.groq_manager = GroqManager()
         self.todoist_manager = TodoistManager()
         self.todoist_manager_se = TodoistManagerSyncEndpoint()
@@ -113,7 +114,7 @@ class WebsocketManager:
         finally:
             self.audio_buffer = bytearray()
 
-    async def todoist_context(self) :
+    async def todoist_context(self):
         logger.info("Fetching todoist context...")
         if self.todoist_coro is None:
             logger.warning(
@@ -156,9 +157,12 @@ class WebsocketManager:
         await self.send_message(MessageType.ANSWER, answer)
         await asyncio.sleep(0.0)
 
-        audio = self.tts_manager.text_to_speech(answer)
-        if audio:
-            await self.send_bytes(MessageType.AI_SPEECH, audio)
+        if not self.is_muted:
+            audio = self.tts_manager.text_to_speech(answer)
+            if audio:
+                await self.send_bytes(MessageType.AI_SPEECH, audio)
+        else:
+            logger.info("Muted mode enabled. Not sending AI speech.")
 
         self.update_history(code, exec_result, answer)
 
@@ -190,9 +194,11 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
+    is_muted = websocket.headers.get("X-Agent-Muted", "false").lower() == "true"
+
     await websocket.accept()
     logger.info(f"Client {websocket.client} connected with valid access key.")
-    manager = WebsocketManager(websocket)
+    manager = WebsocketManager(websocket, is_muted)
     try:
         while True:
             message = await websocket.receive()
