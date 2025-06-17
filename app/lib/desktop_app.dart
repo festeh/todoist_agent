@@ -102,14 +102,12 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final scaffold = Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
+          onPressed: _toggleMute,
+          tooltip: 'Mute/Unmute',
+        ),
         title: const Center(child: Text("Todoist Agent")),
-        actions: [
-          IconButton(
-            icon: Icon(_isMuted ? Icons.volume_off : Icons.volume_up),
-            onPressed: _toggleMute,
-            tooltip: 'Mute/Unmute',
-          ),
-        ],
       ),
       body: const Center(child: Text("")),
       bottomNavigationBar: Padding(
