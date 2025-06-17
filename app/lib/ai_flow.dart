@@ -10,11 +10,13 @@ import 'logger.dart';
 class AiFlow extends StatefulWidget {
   final String? initialText;
   final bool startRecordingOnInit;
+  final bool isMuted;
 
   const AiFlow({
     super.key,
     this.initialText,
     required this.startRecordingOnInit,
+    required this.isMuted,
   });
 
   @override
@@ -163,6 +165,10 @@ class _AiFlowState extends State<AiFlow> {
   }
 
   Future<void> _playAudio(Uint8List audioBytes) async {
+    if (widget.isMuted) {
+      log("Audio is muted. Skipping playback.");
+      return;
+    }
     try {
       await _audioPlayer.play(BytesSource(audioBytes));
       log("Playing received audio...");
