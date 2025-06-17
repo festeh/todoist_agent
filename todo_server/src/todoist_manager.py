@@ -80,7 +80,9 @@ class TodoistManagerSyncEndpoint:
             logger.error("TODOIST_API_KEY environment variable not set.")
             raise ValueError("TODOIST_API_KEY environment variable not set.")
         self._api_token = todoist_api_token
-        self._load_sync_token()
+        self._projects: list[Project] = []
+        self._items: list[Task] = []
+        self._load_cache()
         self._sync_url = "https://api.todoist.com/sync/v9/sync"
 
     def _get_sync_token_path(self) -> str:
@@ -89,18 +91,43 @@ class TodoistManagerSyncEndpoint:
         os.makedirs(app_data_dir, exist_ok=True)
         return os.path.join(app_data_dir, "sync_token")
 
-    def _load_sync_token(self):
+    def _get_data_cache_path(self) -> str:
+        xdg_data_home = os.getenv("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
+        app_data_dir = os.path.join(xdg_data_home, "todo_server")
+        os.makedirs(app_data_dir, exist_ok=True)
+        return os.path.join(app_data_dir, "sync_data.json")
+
+    def _load_cache(self):
         self._sync_token_file = self._get_sync_token_path()
         try:
             with open(self._sync_token_file, "r") as f:
                 token = f.read().strip()
                 self._sync_token = token if token else "*"
         except FileNotFoundError:
-            self._sync_token: str = "*"  # Start with full sync
+            self._sync_token = "*"  # Start with full sync
 
-    def _save_sync_token(self):
+        self._data_cache_file = self._get_data_cache_path()
+        try:
+            with open(self._data_cache_file, "r") as f:
+                data = json.load(f)
+                self._projects = [Project.from_dict(p) for p in data.get("projects", [])]
+                self._items = [Task.from_dict(t) for t in data.get("items", [])]
+        except (FileNotFoundError, json.JSONDecodeError):
+            self._projects = []
+            self._items = []
+            self._sync_token = "*"  # if data is gone, we need a full sync
+
+    def _save_cache(self):
         with open(self._sync_token_file, "w") as f:
             _ = f.write(self._sync_token)
+
+        self._data_cache_file = self._get_data_cache_path()
+        with open(self._data_cache_file, "w") as f:
+            data = {
+                "projects": [p.to_dict() for p in self._projects],
+                "items": [t.to_dict() for t in self._items],
+            }
+            json.dump(data, f)
 
     async def get_context(self) -> str:
         headers = {
@@ -108,13 +135,13 @@ class TodoistManagerSyncEndpoint:
             "Content-Type": "application/x-www-form-urlencoded",
         }
 
-        context = {
+        data = {
             "sync_token": self._sync_token,
             "resource_types": json.dumps(["projects", "items"]),
         }
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(self._sync_url, headers=headers, data=context)
+            response = await client.post(self._sync_url, headers=headers, data=data)
 
         response.raise_for_status()
 
@@ -122,14 +149,29 @@ class TodoistManagerSyncEndpoint:
 
         if "sync_token" in result:
             self._sync_token = result["sync_token"]
-            self._save_sync_token()
 
-        result.setdefault("projects", [])
-        result.setdefault("items", [])
+        new_projects = [Project.from_dict(p) for p in result.get("projects", [])]
+        new_items = [Task.from_dict(t) for t in result.get("items", [])]
 
-        context = SyncEndpointResponse.from_dict(result)
+        if result.get("full_sync"):
+            self._projects = new_projects
+            self._items = new_items
+        else:
+            # Update projects
+            project_map = {p.id: p for p in self._projects}
+            for p in new_projects:
+                project_map[p.id] = p
+            self._projects = list(project_map.values())
 
-        return format_context(context.projects, context.items)
+            # Update items
+            item_map = {i.id: i for i in self._items}
+            for i in new_items:
+                item_map[i.id] = i
+            self._items = list(item_map.values())
+
+        self._save_cache()
+
+        return format_context(self._projects, self._items)
 
 
 @final
