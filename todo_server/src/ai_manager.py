@@ -125,8 +125,8 @@ Always print() the answer of interest
     """
         return prompt
 
-    def get_code_ai_response(self, tasks: str, code_info: str, user_request: str, history=None):
-        prompt = self.get_code_system_prompt(tasks, code_info)
+    def get_code_ai_response(self, context: str, code_info: str, user_request: str, history=None):
+        prompt = self.get_code_system_prompt(context, code_info)
         user_request = f"""<user_request>
 {user_request}
 </user_request>

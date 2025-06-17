@@ -136,10 +136,10 @@ class WebsocketManager:
             self.transcription = transcription
         if self.transcription is None:
             return
-        tasks = await self.todoist_context()
+        context = await self.todoist_context()
         code_info = self.task_client.get_code_info()
         code = self.ai_manager.get_code_ai_response(
-            tasks, code_info, self.transcription, self.history
+            context, code_info, self.transcription, self.history
         )
         await self.send_message(MessageType.CODE, code)
         await asyncio.sleep(0.0)
@@ -151,7 +151,7 @@ class WebsocketManager:
         await asyncio.sleep(0.0)
 
         answer = self.ai_manager.get_answer_ai_response(
-            tasks, code, exec_result, self.history
+            context, code, exec_result, self.history
         )
         await self.send_message(MessageType.ANSWER, answer)
         await asyncio.sleep(0.0)
