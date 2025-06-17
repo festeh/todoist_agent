@@ -64,9 +64,12 @@ def format_context(projects: list[Project], tasks: list[Task]) -> str:
 
 @dataclass
 class SyncEndpointResponse(JSONPyWizard):
-    sync_token: str
+    class _(JSONPyWizard.Meta):  # noqa:N801
+        v1 = True
+
     projects: list[Project]
     items: list[Task]
+    sync_token: str
 
 
 @final
