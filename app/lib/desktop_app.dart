@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'ai_flow.dart'; // Ensure AiFlow is imported
-import 'theme.dart'; // Ensure theme is imported
+import 'ai_flow.dart'; 
+import 'theme.dart'; 
 
-// Intent for keyboard shortcut
 class PressButtonIntent extends Intent {
   const PressButtonIntent();
 }
 
-// Action linked to the intent
 class PressButtonAction extends Action<PressButtonIntent> {
   PressButtonAction(this.callback);
 
@@ -22,7 +20,6 @@ class PressButtonAction extends Action<PressButtonIntent> {
   }
 }
 
-// Root widget for the standard application
 class DesktopApp extends StatelessWidget {
   const DesktopApp({super.key});
 
@@ -37,7 +34,6 @@ class DesktopApp extends StatelessWidget {
   }
 }
 
-// Main page widget for the standard application
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -45,7 +41,6 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-// State for the main page
 class _HomeState extends State<Home> {
   final TextEditingController _textController = TextEditingController();
   bool _isMuted = false;
@@ -75,8 +70,8 @@ class _HomeState extends State<Home> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            AiFlow(startRecordingOnInit: true, isMuted: _isMuted),
+        builder:
+            (context) => AiFlow(startRecordingOnInit: true, isMuted: _isMuted),
       ),
     );
   }
@@ -86,8 +81,12 @@ class _HomeState extends State<Home> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AiFlow(
-            initialText: text, startRecordingOnInit: false, isMuted: _isMuted),
+        builder:
+            (context) => AiFlow(
+              initialText: text,
+              startRecordingOnInit: false,
+              isMuted: _isMuted,
+            ),
       ),
     );
     _textController.clear();
@@ -125,7 +124,7 @@ class _HomeState extends State<Home> {
                   hintText: 'Enter Task here or press Mic...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(
-                      20.0, // Increased radius for more rounded corners
+                      20.0, 
                     ),
                   ),
                 ),
@@ -133,10 +132,10 @@ class _HomeState extends State<Home> {
             ),
             const SizedBox(
               width: 8,
-            ), // Add spacing between text field and button
+            ), 
             FloatingActionButton(
               onPressed:
-                  _navigateToAiFlowRecording, // Use specific method for mic
+                  _navigateToAiFlowRecording, 
               tooltip: 'Start Recording',
               child: const Icon(Icons.mic),
             ),
@@ -145,7 +144,6 @@ class _HomeState extends State<Home> {
       ),
     );
 
-    // Apply Linux-specific shortcuts if applicable
     final isLinux = Theme.of(context).platform == TargetPlatform.linux;
     if (isLinux) {
       final shortcuts = <LogicalKeySet, Intent>{
@@ -154,7 +152,6 @@ class _HomeState extends State<Home> {
       };
 
       final actions = <Type, Action<Intent>>{
-        // Ensure shortcut triggers the recording flow
         PressButtonIntent: PressButtonAction(_navigateToAiFlowRecording),
       };
 
