@@ -80,7 +80,7 @@ class _AiFlowState extends State<AiFlow> {
       defaultValue: 'ws://localhost:8000/connect',
     );
 
-    _webSocketManager = WebSocketManager(websocketUrl);
+    _webSocketManager = WebSocketManager(websocketUrl, isMuted: widget.isMuted);
 
     _webSocketManager.onStatusChange.listen((status) {
       if (!mounted) return;

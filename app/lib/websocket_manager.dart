@@ -11,6 +11,7 @@ class WebSocketManager {
   WebSocket? _channel;
   StreamSubscription? _channelSubscription;
   final String _url;
+  final bool _isMuted;
   ConnectionStatus _status = ConnectionStatus.disconnected;
   String _errorMessage = '';
 
@@ -19,7 +20,7 @@ class WebSocketManager {
   final _messageController = StreamController<String>.broadcast();
   final _audioController = StreamController<Uint8List>.broadcast();
 
-  WebSocketManager(this._url);
+  WebSocketManager(this._url, {required bool isMuted}) : _isMuted = isMuted;
 
   ConnectionStatus get status => _status;
   String get errorMessage => _errorMessage;
@@ -48,7 +49,10 @@ class WebSocketManager {
       _updateStatus(ConnectionStatus.error);
     }
 
-    final Map<String, dynamic> headers = {'X-Agent-Access-Key': agentAccessKey};
+    final Map<String, dynamic> headers = {
+      'X-Agent-Access-Key': agentAccessKey,
+      'X-Muted': _isMuted.toString(),
+    };
 
     try {
       _channel = await WebSocket.connect(_url, headers: headers);
