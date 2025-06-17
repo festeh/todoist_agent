@@ -68,7 +68,7 @@ class _HomeState extends State<Home> {
             (context) => AiFlow(initialText: text, startRecordingOnInit: false),
       ),
     );
-    _textController.clear(); // Clear text field after submission
+    _textController.clear(); 
   }
 
   @override
@@ -81,7 +81,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final scaffold = Scaffold(
       appBar: AppBar(
-        title: const Center(child: Text("My App")), // Added a title for context
+        title: const Center(child: Text("Todoist Agent")), 
       ),
       body: const Center(
         child: Text(""),
