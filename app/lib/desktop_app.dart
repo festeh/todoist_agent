@@ -64,8 +64,8 @@ class _HomeState extends State<Home> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            AiFlow(initialText: text, startRecordingOnInit: false),
+        builder:
+            (context) => AiFlow(initialText: text, startRecordingOnInit: false),
       ),
     );
     _textController.clear(); // Clear text field after submission
@@ -84,8 +84,7 @@ class _HomeState extends State<Home> {
         title: const Center(child: Text("My App")), // Added a title for context
       ),
       body: const Center(
-        // Placeholder for main content, can be removed or replaced later
-        child: Text("Main Content Area"),
+        child: Text(""),
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -94,9 +93,9 @@ class _HomeState extends State<Home> {
             Expanded(
               child: TextField(
                 controller: _textController,
-                onSubmitted: _navigateToAiFlowWithText, // Handle submission
+                onSubmitted: _navigateToAiFlowWithText,
                 decoration: InputDecoration(
-                  hintText: 'Enter Task here or press Mic...', // Updated hint
+                  hintText: 'Enter Task here or press Mic...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(
                       20.0, // Increased radius for more rounded corners
