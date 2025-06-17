@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import final
 from dotenv import load_dotenv
 import os
@@ -46,6 +46,24 @@ class TaskClient:
         if not token:
             raise ValueError("TODOIST_API_KEY environment variable not set.")
         self.todoist = TodoistAPI(token)
+
+    @staticmethod
+    def get_date_cls() -> type[date]:
+        from datetime import date
+
+        return date
+
+    @staticmethod
+    def get_timedelta_cls() -> type[timedelta]:
+        from datetime import timedelta
+
+        return timedelta
+
+    @staticmethod
+    def get_datetime_cls() -> type[datetime]:
+        from datetime import datetime
+
+        return datetime
 
     def get_project_by_id(self, id: str) -> Project:
         project = self.todoist.get_project(id)

@@ -110,15 +110,13 @@ Today is {datetime.now().strftime("%d %b %Y %H:%M")}
 
 <constraints>
 Output ONLY Python code, that will be directly executed in Python environment
-Do not care about commenting code
+Do not comment code
 You should use client:TasksAPI to work with Tasks API, that is already presented
 Try to minimize code length and number of api calls
 Don't define new functions
 Don't use if __name__ == "__main__"
-Don't forget to add `from datetime import date, datetime` if you need to use this module and classes
-Always find out which type `task.due` has (date or datetime) before working with it
-Do not call due.date() if it might be a `datetime.date` already
-You can also import and use standard Python libraries
+To get date,timedelta,datetime classes from datetime use client.get_date_cls(), client.get_timedelta_cls(), client.get_datetime_cls()
+Never import any other modules
 Each line you output MUST be a valid Python code
 Always print() the answer of interest
 </constraints>
@@ -135,7 +133,8 @@ Always print() the answer of interest
             prompt,
             user_request,
             # model_override="anthropic/claude-3.7-sonnet",
-            model_override="qwen/qwen-2.5-coder-32b-instruct",
+            # model_override="qwen/qwen-2.5-coder-32b-instruct",
+            model_override="google/gemini-2.0-flash-001",
             # model_override="deepseek/deepseek-chat-v3-0324",
             history=history,
         )
