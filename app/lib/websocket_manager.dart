@@ -38,7 +38,6 @@ class WebSocketManager {
 
     _updateStatus(ConnectionStatus.connecting);
 
-    // Retrieve the access key from environment variables
     const String agentAccessKey = String.fromEnvironment(
       'TODOIST_AGENT_ACCESS_KEY',
       defaultValue: '',
