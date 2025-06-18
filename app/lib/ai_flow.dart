@@ -233,12 +233,10 @@ class _AiFlowState extends State<AiFlow> {
                 ),
                 shape: const RoundedRectangleBorder(
                   borderRadius:
-                      BorderRadius.zero, // Or a small radius if preferred
+                      BorderRadius.zero, 
                 ),
               ),
-              child: Text(
-                _recording ? 'Stop' : 'Record',
-              ), // Change text based on state
+              child: Text(_recording ? 'Stop' : 'Record'),
             ),
             const SizedBox(height: 20),
             _buildConnectionStatusWidget(),
