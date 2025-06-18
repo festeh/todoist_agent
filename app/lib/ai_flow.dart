@@ -6,6 +6,7 @@ import 'audio_recorder.dart';
 import 'websocket_manager.dart';
 import 'message_list_view.dart';
 import 'logger.dart';
+import 'timer_service.dart';
 
 class AiFlow extends StatefulWidget {
   final String? initialText;
@@ -24,9 +25,7 @@ class AiFlow extends StatefulWidget {
 }
 
 class _AiFlowState extends State<AiFlow> {
-  final Stopwatch _stopwatch = Stopwatch();
-  late Timer _timer;
-  String _elapsedTime = _formatTime(0);
+  final TimerService _timerService = TimerService();
 
   final AudioRecorderService _audioRecorderService = AudioRecorderService();
   final AudioPlayer _audioPlayer = AudioPlayer();
@@ -45,9 +44,7 @@ class _AiFlowState extends State<AiFlow> {
     if (widget.startRecordingOnInit) {
       _startTimerAndRecording();
     } else {
-      _timer = Timer(Duration.zero, () {});
       _recording = false;
-      _elapsedTime = _formatTime(0);
     }
     _initWebSocket();
   }
@@ -55,18 +52,7 @@ class _AiFlowState extends State<AiFlow> {
   Future<void> _startTimerAndRecording() async {
     if (_recording) return;
 
-    _stopwatch.reset();
-    _elapsedTime = _formatTime(0);
-    _stopwatch.start();
-
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (!mounted) return;
-      if (_stopwatch.isRunning) {
-        setState(() {
-          _elapsedTime = _formatTime(_stopwatch.elapsedMilliseconds);
-        });
-      }
-    });
+    _timerService.startTimer();
 
     await _audioRecorderService.startRecording();
     setState(() {
@@ -120,8 +106,7 @@ class _AiFlowState extends State<AiFlow> {
   }
 
   void _stop() {
-    _timer.cancel();
-    _stopwatch.stop();
+    _timerService.stopTimer();
     _recording = false;
   }
 
@@ -155,13 +140,8 @@ class _AiFlowState extends State<AiFlow> {
     _audioRecorderService.dispose();
     _webSocketManager.dispose();
     _audioPlayer.dispose(); // Dispose the audio player
+    _timerService.dispose();
     super.dispose();
-  }
-
-  static String _formatTime(int milliseconds) {
-    int seconds = (milliseconds / 1000).truncate();
-    String secondsStr = seconds.toString().padLeft(2, '0');
-    return secondsStr;
   }
 
   Future<void> _playAudio(Uint8List audioBytes) async {
@@ -233,12 +213,17 @@ class _AiFlowState extends State<AiFlow> {
           children: <Widget>[
             // Display the timer only when recording
             if (_recording)
-              Text(
-                _elapsedTime,
-                style:
-                    Theme.of(
-                      context,
-                    ).textTheme.headlineMedium, // Make text larger
+              ValueListenableBuilder<String>(
+                valueListenable: _timerService.elapsedTimeNotifier,
+                builder: (context, value, child) {
+                  return Text(
+                    value,
+                    style:
+                        Theme.of(
+                          context,
+                        ).textTheme.headlineMedium, // Make text larger
+                  );
+                },
               ),
             if (_recording)
               const SizedBox(height: 20), // Add space only if timer is shown
