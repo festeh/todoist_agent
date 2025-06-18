@@ -111,7 +111,7 @@ class _AiFlowState extends State<AiFlow> {
   }
 
   Future<void> _stopTimerAndRecording() async {
-    if (!_recording) return; // Don't stop if not recording
+    if (!_recording) return;
 
     _stop();
     final recordingPath = await _audioRecorderService.stopRecording();
@@ -119,12 +119,11 @@ class _AiFlowState extends State<AiFlow> {
     if (recordingPath == null) {
       log("stopRecording returned null, cannot proceed.");
       setState(() {
-        _recording = false; // Still update state even if path is null
+        _recording = false;
       });
       return;
     }
 
-    // Attempt to get bytes and send even if path exists
     final recorded = await _audioRecorderService.getRecordedBytes();
     if (recorded != null) {
       _webSocketManager.sendAudio(recorded);
@@ -139,7 +138,7 @@ class _AiFlowState extends State<AiFlow> {
     _stop();
     _audioRecorderService.dispose();
     _webSocketManager.dispose();
-    _audioPlayer.dispose(); // Dispose the audio player
+    _audioPlayer.dispose();
     _timerService.dispose();
     super.dispose();
   }
