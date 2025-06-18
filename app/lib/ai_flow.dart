@@ -36,6 +36,7 @@ class _AiFlowState extends State<AiFlow> {
   String _connectionError = '';
   final List<String> _receivedMessages = [];
   bool _recording = false;
+  final TextEditingController _textController = TextEditingController();
 
   @override
   void initState() {
@@ -132,6 +133,15 @@ class _AiFlowState extends State<AiFlow> {
     }
   }
 
+  void _sendTextMessage() {
+    if (_textController.text.isNotEmpty) {
+      final message = _textController.text;
+      _webSocketManager.sendTranscription(message);
+      log('Sent message: $message');
+      _textController.clear();
+    }
+  }
+
   @override
   void dispose() {
     _stop();
@@ -140,6 +150,7 @@ class _AiFlowState extends State<AiFlow> {
     _webSocketManager.dispose();
     _audioPlayer.dispose();
     _timerService.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -242,8 +253,34 @@ class _AiFlowState extends State<AiFlow> {
             _buildConnectionStatusWidget(),
             const SizedBox(height: 20),
             Expanded(child: MessageListView(messages: _receivedMessages)),
+            _buildTextInput(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextInput() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: TextField(
+              controller: _textController,
+              decoration: const InputDecoration(
+                hintText: 'Enter a message...',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (_) => _sendTextMessage(),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: _sendTextMessage,
+          ),
+        ],
       ),
     );
   }
