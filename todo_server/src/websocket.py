@@ -194,7 +194,7 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    is_muted = websocket.headers.get("X-Agent-Muted", "false").lower() == "true"
+    is_muted = websocket.headers.get("X-Muted", "false").lower() == "true"
 
     await websocket.accept()
     logger.info(f"Client {websocket.client} connected with valid access key.")
