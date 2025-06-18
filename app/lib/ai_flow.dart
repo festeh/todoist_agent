@@ -179,7 +179,7 @@ class _AiFlowState extends State<AiFlow> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.2),
+        color: statusColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20.0),
         border: Border.all(color: statusColor),
       ),
@@ -218,18 +218,13 @@ class _AiFlowState extends State<AiFlow> {
                 builder: (context, value, child) {
                   return Text(
                     value,
-                    style:
-                        Theme.of(
-                          context,
-                        ).textTheme.headlineMedium, // Make text larger
+                    style: Theme.of(context).textTheme.headlineMedium,
                   );
                 },
               ),
-            if (_recording)
-              const SizedBox(height: 20), // Add space only if timer is shown
+            if (_recording) const SizedBox(height: 20),
             // Record/Stop button
             ElevatedButton(
-              // Action depends on whether currently recording
               onPressed:
                   _recording ? _stopTimerAndRecording : _startTimerAndRecording,
               style: ElevatedButton.styleFrom(
