@@ -26,8 +26,8 @@ class AiManager:
         # self.model = "qwen/qwen-2.5-coder-32b-instruct"
         # self.model = "anthropic/claude-3.7-sonnet"
         self.fallbacks: list[str] = [
-            "meta-llama/llama-4-maverick",
-            "anthropic/claude-3.7-sonnet",
+            "deepseek/deepseek-chat-v3-0324",
+            "anthropic/claude-sonnet-4",
             "google/gemini-2.0-flash-001",
             "google/gemini-2.5-pro-exp-03-25:free",
         ]
