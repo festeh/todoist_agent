@@ -57,7 +57,7 @@ class WebsocketManager:
         self.code_manager = CodeManager()
         self.tts_manager = TTSManager()
 
-        self.task_client = TaskClient()
+        self.task_client = TaskClient(self.todoist_manager_se)
         self.ws = ws
 
         self.reset()
@@ -146,7 +146,7 @@ class WebsocketManager:
         await asyncio.sleep(0.0)
 
         logger.debug("Executing code...")
-        exec_result = self.code_manager.execute(code)
+        exec_result = self.code_manager.execute(self.task_client, code)
         logger.debug("Code execution finished.")
         await self.send_message(MessageType.INFO, exec_result)
         await asyncio.sleep(0.0)

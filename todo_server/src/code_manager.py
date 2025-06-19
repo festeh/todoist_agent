@@ -1,17 +1,18 @@
 import io
 import contextlib
 from loguru import logger
+
 from src.task_client import TaskClient
 
 
 class CodeManager:
     def __init__(self):
-        self._client = TaskClient()
+        pass
 
-    def execute(self, code: str) -> str:
+    def execute(self, client: TaskClient, code: str) -> str:
         stdout_capture = io.StringIO()
         try:
-            execution_scope = {"client": self._client}
+            execution_scope = {"client": client}
 
             with contextlib.redirect_stdout(stdout_capture):
                 exec(code, execution_scope, execution_scope)
