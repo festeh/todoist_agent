@@ -53,12 +53,12 @@ class FilterTaskDue:
 
 @dataclass
 class FilterAND:
-    filters: list[Filter]
+    filters: list["Filter"]
 
 
 @dataclass
 class FilterOR:
-    filters: list[Filter]
+    filters: list["Filter"]
 
 
 type Filter = (
