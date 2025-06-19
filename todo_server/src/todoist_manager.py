@@ -8,10 +8,11 @@ from todoist_api_python.models import Task, Project
 from dotenv import load_dotenv
 import os
 import asyncio
-from datetime import date
+from datetime import date, datetime
 import httpx
 import json
 from loguru import logger
+import operator
 from dataclass_wizard import JSONPyWizard
 from dataclasses import dataclass
 
@@ -60,6 +61,48 @@ def format_context(projects: list[Project], tasks: list[Task]) -> str:
         output_lines.extend(task_lines)
 
     return "\n".join(output_lines)
+
+
+@dataclass
+class FilterProjectId:
+    id: str
+
+
+@dataclass
+class FilterProjectName:
+    name: str
+
+
+@dataclass
+class FilterTaskNameMatches:
+    substring: str
+
+
+@dataclass
+class FilterTaskDue:
+    before: date | datetime | None = None
+    on: date | datetime | None = None
+    after: date | datetime | None = None
+
+
+@dataclass
+class FilterAND:
+    filters: list["Filter"]
+
+
+@dataclass
+class FilterOR:
+    filters: list["Filter"]
+
+
+type Filter = (
+    FilterProjectId
+    | FilterProjectName
+    | FilterTaskNameMatches
+    | FilterTaskDue
+    | FilterAND
+    | FilterOR
+)
 
 
 @dataclass
@@ -172,6 +215,81 @@ class TodoistManagerSyncEndpoint:
         self._save_cache()
 
         return format_context(self._projects, self._items)
+
+    def get_tasks(self, filter_obj: Filter | None = None) -> list[Task]:
+        if not filter_obj:
+            return self._items
+
+        return [
+            task for task in self._items if self._task_matches_filter(task, filter_obj)
+        ]
+
+    def _task_matches_filter(self, task: Task, filter_obj: Filter) -> bool:
+        if isinstance(filter_obj, FilterProjectId):
+            return task.project_id == filter_obj.id
+
+        if isinstance(filter_obj, FilterProjectName):
+            project_map = {p.name: p.id for p in self._projects}
+            project_id = project_map.get(filter_obj.name)
+            return project_id is not None and task.project_id == project_id
+
+        if isinstance(filter_obj, FilterTaskNameMatches):
+            return filter_obj.substring.lower() in task.content.lower()
+
+        if isinstance(filter_obj, FilterTaskDue):
+            if not any([filter_obj.on, filter_obj.before, filter_obj.after]):
+                return False
+            if not task.due:
+                return False
+
+            task_due_date_str = task.due.date
+            task_due_obj: date | datetime | None = None
+            try:
+                if "T" in task_due_date_str:
+                    if task_due_date_str.endswith("Z"):
+                        task_due_obj = datetime.fromisoformat(
+                            task_due_date_str[:-1] + "+00:00"
+                        )
+                    else:
+                        task_due_obj = datetime.fromisoformat(task_due_date_str)
+                else:
+                    task_due_obj = date.fromisoformat(task_due_date_str)
+            except ValueError:
+                logger.warning(f"Could not parse due date string: {task_due_date_str}")
+                return False
+
+            if task_due_obj is None:
+                return False
+
+            def _compare(val1, val2, op):
+                if type(val1) is not type(val2):
+                    v1 = val1.date() if isinstance(val1, datetime) else val1
+                    v2 = val2.date() if isinstance(val2, datetime) else val2
+                    return op(v1, v2)
+                return op(val1, val2)
+
+            if filter_obj.on:
+                if not _compare(task_due_obj, filter_obj.on, operator.eq):
+                    return False
+            if filter_obj.before:
+                if not _compare(task_due_obj, filter_obj.before, operator.lt):
+                    return False
+            if filter_obj.after:
+                if not _compare(task_due_obj, filter_obj.after, operator.gt):
+                    return False
+            return True
+
+        if isinstance(filter_obj, FilterAND):
+            return all(
+                self._task_matches_filter(task, f) for f in filter_obj.filters
+            )
+
+        if isinstance(filter_obj, FilterOR):
+            return any(
+                self._task_matches_filter(task, f) for f in filter_obj.filters
+            )
+
+        return False
 
     def get_projects(self) -> list[Project]:
         return self._projects

@@ -9,7 +9,7 @@ import inspect
 from todoist_api_python.models import Task as TodoistTask
 from todoist_api_python.api import TodoistAPI
 
-from src.todoist_manager import TodoistManagerSyncEndpoint
+from src.todoist_manager import Filter, TodoistManagerSyncEndpoint
 
 _ = load_dotenv()
 
@@ -29,48 +29,6 @@ class Task:
     priority: int
     due: date | datetime | None
     # due_datetime: datetime | None
-
-
-@dataclass
-class FilterProjectId:
-    id: str
-
-
-@dataclass
-class FilterProjectName:
-    name: str
-
-
-@dataclass
-class FilterTaskNameMatches:
-    substring: str
-
-
-@dataclass
-class FilterTaskDue:
-    before: date | datetime | None
-    on: date | datetime | None
-    after: date | datetime | None
-
-
-@dataclass
-class FilterAND:
-    filters: list["Filter"]
-
-
-@dataclass
-class FilterOR:
-    filters: list["Filter"]
-
-
-type Filter = (
-    FilterProjectId
-    | FilterProjectName
-    | FilterTaskNameMatches
-    | FilterTaskDue
-    | FilterAND
-    | FilterOR
-)
 
 
 @final
@@ -135,13 +93,9 @@ class TaskClient:
             # due_datetime=task.due.date if task.due and isinstance(task.due.date, datetime) else None,
         )
 
-    def get_tasks(self, project_id: str | None = None) -> list[Task]:
-        tasks = self.todoist.get_tasks(project_id=project_id)
-        return [
-            self._convert_to_local_task(task)
-            for task_page in tasks
-            for task in task_page
-        ]
+    def get_tasks(self, filter: Filter | None = None) -> list[Task]:
+        tasks = self.todoist_ro.get_tasks(filter)
+        return [self._convert_to_local_task(task) for task in tasks]
 
     def add_task(
         self,
