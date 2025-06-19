@@ -9,6 +9,8 @@ import inspect
 from todoist_api_python.models import Task as TodoistTask
 from todoist_api_python.api import TodoistAPI
 
+from src.todoist_manager import TodoistManagerSyncEndpoint
+
 _ = load_dotenv()
 
 
@@ -73,11 +75,13 @@ type Filter = (
 
 @final
 class TaskClient:
-    def __init__(self):
+    def __init__(self, todoist_ro_client: TodoistManagerSyncEndpoint):
         token = os.getenv("TODOIST_API_KEY")
         if not token:
             raise ValueError("TODOIST_API_KEY environment variable not set.")
         self.todoist = TodoistAPI(token)
+
+        self.todoist_ro = todoist_ro_client
 
     @staticmethod
     def get_date_cls() -> type[date]:
@@ -98,17 +102,16 @@ class TaskClient:
         return datetime
 
     def get_project_by_id(self, id: str) -> Project:
-        project = self.todoist.get_project(id)
+        project = self.todoist_ro.get_project(id)
         return Project(
             id=project.id, name=project.name, is_favorite=project.is_favorite
         )
 
     def get_all_projects(self) -> list[Project]:
-        projects = self.todoist.get_projects()
+        projects = self.todoist_ro.get_projects()
         return [
             Project(id=project.id, name=project.name, is_favorite=project.is_favorite)
-            for project_page in projects
-            for project in project_page
+            for project in projects
         ]
 
     def add_project(self, name: str, is_favorite: bool = False) -> Project:

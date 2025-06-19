@@ -143,12 +143,12 @@ class TodoistManagerSyncEndpoint:
         async with httpx.AsyncClient() as client:
             response = await client.post(self._sync_url, headers=headers, data=data)
 
-        response.raise_for_status()
+        _ =response.raise_for_status()
 
         result: dict[str, Any] = response.json()
 
         if "sync_token" in result:
-            self._sync_token = result["sync_token"]
+            self._sync_token: str = result["sync_token"]
 
         new_projects = [Project.from_dict(p) for p in result.get("projects", [])]
         new_items = [Task.from_dict(t) for t in result.get("items", [])]
@@ -172,6 +172,15 @@ class TodoistManagerSyncEndpoint:
         self._save_cache()
 
         return format_context(self._projects, self._items)
+
+    def get_projects(self) -> list[Project]:
+        return self._projects
+
+    def get_project(self, id: str) -> Project:
+        p = next((p for p in self._projects if p.id == id), None)
+        if not p:
+            raise ValueError(f"Project with id {id} not found")
+        return p
 
 
 @final
