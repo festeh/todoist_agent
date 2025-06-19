@@ -3,6 +3,14 @@ import contextlib
 from loguru import logger
 
 from src.task_client import TaskClient
+from src.todoist_manager import (
+    FilterAND,
+    FilterOR,
+    FilterProjectId,
+    FilterProjectName,
+    FilterTaskDue,
+    FilterTaskNameMatches,
+)
 
 
 class CodeManager:
@@ -12,7 +20,15 @@ class CodeManager:
     def execute(self, client: TaskClient, code: str) -> str:
         stdout_capture = io.StringIO()
         try:
-            execution_scope = {"client": client}
+            execution_scope = {
+                "client": client,
+                "FilterProjectId": FilterProjectId,
+                "FilterProjectName": FilterProjectName,
+                "FilterTaskNameMatches": FilterTaskNameMatches,
+                "FilterTaskDue": FilterTaskDue,
+                "FilterAND": FilterAND,
+                "FilterOR": FilterOR,
+            }
 
             with contextlib.redirect_stdout(stdout_capture):
                 exec(code, execution_scope, execution_scope)
