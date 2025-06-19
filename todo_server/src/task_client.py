@@ -9,7 +9,16 @@ import inspect
 from todoist_api_python.models import Task as TodoistTask
 from todoist_api_python.api import TodoistAPI
 
-from src.todoist_manager import Filter, TodoistManagerSyncEndpoint
+from src.todoist_manager import (
+    Filter,
+    FilterAND,
+    FilterOR,
+    FilterProjectId,
+    FilterProjectName,
+    FilterTaskDue,
+    FilterTaskNameMatches,
+    TodoistManagerSyncEndpoint,
+)
 
 _ = load_dotenv()
 
@@ -150,7 +159,7 @@ class TaskClient:
             "__exit__",
             "__enter__",
             "get_code_info",
-            "__get_class_fields_info",
+            "_get_class_fields_info",
         ]
         result = ["class TasksAPI:"]
         for method in dir(client):
@@ -176,8 +185,26 @@ class TaskClient:
                 result.append("")
 
         # Add info for relevant model classes
-        for model_cls in [Task, Project]:
+        for model_cls in [
+            Task,
+            Project,
+            FilterProjectId,
+            FilterProjectName,
+            FilterTaskNameMatches,
+            FilterTaskDue,
+            FilterAND,
+            FilterOR,
+        ]:
             result.append("")
             result.extend(self._get_class_fields_info(model_cls))
+        result.append("""
+type Filter = (
+FilterProjectId
+| FilterProjectName
+| FilterTaskNameMatches
+| FilterTaskDue
+| FilterAND
+| FilterOR
+)""")
         logger.info("Collected code context")
         return "\n".join(result)

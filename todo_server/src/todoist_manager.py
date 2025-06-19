@@ -2,7 +2,7 @@ from typing import Any, final
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.api_async import TodoistAPIAsync
 
-from todoist_api_python.models import Task, Project
+from todoist_api_python.models import ApiDue, Task, Project
 
 
 from dotenv import load_dotenv
@@ -242,26 +242,8 @@ class TodoistManagerSyncEndpoint:
             if not task.due:
                 return False
 
-            task_due_date_str = task.due.date
-            task_due_obj: date | datetime | None = None
-            try:
-                if "T" in task_due_date_str:
-                    if task_due_date_str.endswith("Z"):
-                        task_due_obj = datetime.fromisoformat(
-                            task_due_date_str[:-1] + "+00:00"
-                        )
-                    else:
-                        task_due_obj = datetime.fromisoformat(task_due_date_str)
-                else:
-                    task_due_obj = date.fromisoformat(task_due_date_str)
-            except ValueError:
-                logger.warning(f"Could not parse due date string: {task_due_date_str}")
-                return False
-
-            if task_due_obj is None:
-                return False
-
-            def _compare(val1, val2, op):
+            task_due_obj = task.due.date 
+            def _compare(val1: ApiDue, val2, op) -> bool:
                 if type(val1) is not type(val2):
                     v1 = val1.date() if isinstance(val1, datetime) else val1
                     v2 = val2.date() if isinstance(val2, datetime) else val2
@@ -284,12 +266,11 @@ class TodoistManagerSyncEndpoint:
                 self._task_matches_filter(task, f) for f in filter_obj.filters
             )
 
-        if isinstance(filter_obj, FilterOR):
-            return any(
-                self._task_matches_filter(task, f) for f in filter_obj.filters
-            )
+        # FilterOR
+        return any(
+            self._task_matches_filter(task, f) for f in filter_obj.filters
+        )
 
-        return False
 
     def get_projects(self) -> list[Project]:
         return self._projects
