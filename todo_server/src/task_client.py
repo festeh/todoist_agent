@@ -30,13 +30,45 @@ class Task:
 
 
 @dataclass
-class UnaryFilter:
-    project_id: str | None
-    project_name: str | None
-    task_name: str | None
+class FilterProjectId:
+    id: str
 
 
-type Filter = UnaryFilter
+@dataclass
+class FilterProjectName:
+    name: str
+
+
+@dataclass
+class FilterTaskNameMatches:
+    substring: str
+
+
+@dataclass
+class FilterTaskDue:
+    before: date | datetime | None
+    on: date | datetime | None
+    after: date | datetime | None
+
+
+@dataclass
+class FilterAND:
+    filters: list[Filter]
+
+
+@dataclass
+class FilterOR:
+    filters: list[Filter]
+
+
+type Filter = (
+    FilterProjectId
+    | FilterProjectName
+    | FilterTaskNameMatches
+    | FilterTaskDue
+    | FilterAND
+    | FilterOR
+)
 
 
 @final
