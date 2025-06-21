@@ -15,22 +15,24 @@ def test_add_task():
     client = TaskClient(mock_todoist_ro)
     
     # Mock the todoist API response
-    mock_due = Due(date="2025-06-21", is_recurring=False, lang="en", string="Jun 21")
-    mock_todoist_task = TodoistTask(
-        id="test_task_id",
-        content="задача",
-        project_id="2316809606",
-        priority=1,
-        due=mock_due
-    )
-    
-    # Mock the add_task method to return our mock task
-    client.todoist.add_task = MagicMock(return_value=mock_todoist_task)
+    # mock_due = Due(date="2025-06-21", is_recurring=False, lang="en", string="Jun 21")
+    # mock_todoist_task = TodoistTask(
+    #     id="test_task_id",
+    #     content="задача",
+    #     project_id="2316809606",
+    #     priority=1,
+    #     due=mock_due
+    # )
+    # 
+    # # Mock the add_task method to return our mock task
+    # client.todoist.add_task = MagicMock(return_value=mock_todoist_task)
     
     # Call the method under test
+    print('lul')
     result = client.add_task(
-        content='задача',
-        project_id='2316809606',
+        content='lul',
+        # project_id='2316809606',
+        project_id='2347646916',
         due_date=date(2025, 6, 21)
     )
     

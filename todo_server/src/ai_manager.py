@@ -116,6 +116,7 @@ Try to minimize code length and number of api calls
 Don't define new functions
 Don't use if __name__ == "__main__"
 To get date,timedelta,datetime classes from datetime use client.get_date_cls(), client.get_timedelta_cls(), client.get_datetime_cls()
+If variables can be data or datetime objects, do not compare them directly
 Never import any other modules
 Each line you output MUST be a valid Python code
 Always print() the answer of interest
@@ -134,7 +135,8 @@ Always print() the answer of interest
             user_request,
             # model_override="anthropic/claude-3.7-sonnet",
             # model_override="qwen/qwen-2.5-coder-32b-instruct",
-            model_override="google/gemini-2.0-flash-001",
+            # model_override="google/gemini-2.0-flash-001",
+            model_override="google/gemini-2.5-flash",
             # model_override="deepseek/deepseek-chat-v3-0324",
             history=history,
         )
