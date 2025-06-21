@@ -126,7 +126,7 @@ class TodoistManagerSyncEndpoint:
         self._projects: list[Project] = []
         self._items: list[Task] = []
         self._load_cache()
-        self._sync_url = "https://api.todoist.com/sync/v9/sync"
+        self._sync_url = "https://api.todoist.com/api/v1/sync"
 
     def _get_sync_token_path(self) -> str:
         xdg_data_home = os.getenv("XDG_DATA_HOME", os.path.expanduser("~/.local/share"))
